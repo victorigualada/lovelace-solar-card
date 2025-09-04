@@ -11,4 +11,3 @@ export interface HistoryStateItem {
 }
 
 export type HistoryPeriodResponse = HistoryStateItem[][];
-

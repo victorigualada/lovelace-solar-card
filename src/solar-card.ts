@@ -1,7 +1,7 @@
 // Home Assistant Solar Card
 // Element: solar-card
 
-import { LitElement, html, css, nothing, svg } from "lit";
+import { LitElement, html, css, nothing, svg } from 'lit';
 import { localize } from './localize/localize';
 // Ensure the visual editor is registered when this module loads
 import './solar-card-editor';
@@ -12,7 +12,13 @@ type HassAware = HTMLElement & { hass?: Hass | null; setConfig?: (cfg: unknown) 
 
 declare global {
   interface Window {
-    customCards?: Array<{ type: string; name: string; description?: string; preview?: boolean; documentationURL?: string }>;
+    customCards?: Array<{
+      type: string;
+      name: string;
+      description?: string;
+      preview?: boolean;
+      documentationURL?: string;
+    }>;
     loadCardHelpers?: () => Promise<{ createCardElement?: (cfg: unknown) => HTMLElement }>;
   }
 }
@@ -20,29 +26,29 @@ declare global {
 // Register card in the Add Card picker
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: "solar-card",
-  name: "Solar Energy Card",
-  description: "Left panel: yield today, current consumption, title, and image.",
+  type: 'solar-card',
+  name: 'Solar Energy Card',
+  description: 'Left panel: yield today, current consumption, title, and image.',
   preview: true,
-  documentationURL: "https://github.com/victorigualada/lovelace-solar-card"
+  documentationURL: 'https://github.com/victorigualada/lovelace-solar-card',
 });
 
-const UNAVAILABLE_STATES = new Set(["unknown", "unavailable", "none"]);
+const UNAVAILABLE_STATES = new Set(['unknown', 'unavailable', 'none']);
 
 function escapeHtml(str: unknown): string {
   return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function formatNumberLocale(value: unknown, hass: Hass | null, options: Intl.NumberFormatOptions = {}): string {
-  if (value === null || value === undefined || value === "") return "—";
+  if (value === null || value === undefined || value === '') return '—';
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
-  const locale = (hass?.locale?.language || hass?.language || navigator.language || "en");
+  const locale = hass?.locale?.language || hass?.language || navigator.language || 'en';
   try {
     return new Intl.NumberFormat(locale, options).format(num);
   } catch (_e) {
@@ -51,12 +57,12 @@ function formatNumberLocale(value: unknown, hass: Hass | null, options: Intl.Num
 }
 
 function entityDisplay(hass: Hass | null, entityId?: string | null): DisplayValue {
-  if (!entityId) return { value: "—", unit: "" };
+  if (!entityId) return { value: '—', unit: '' };
   const stateObj = hass?.states?.[entityId as string] as HassEntity | undefined;
-  if (!stateObj) return { value: "—", unit: "" };
-  const unit = stateObj.attributes.unit_of_measurement || "";
+  if (!stateObj) return { value: '—', unit: '' };
+  const unit = stateObj.attributes.unit_of_measurement || '';
   const state = stateObj.state;
-  if (UNAVAILABLE_STATES.has(state)) return { value: "—", unit };
+  if (UNAVAILABLE_STATES.has(state)) return { value: '—', unit };
   const value = formatNumberLocale(state, hass, { maximumFractionDigits: 2 });
   return { value, unit };
 }
@@ -72,149 +78,343 @@ class HaSolarCard extends LitElement {
   }
 
   static styles = css`
-      :host { display: block; }
-      ha-card {
-        padding: 16px;
-        --label-color: var(--secondary-text-color);
+    :host {
+      display: block;
+    }
+    ha-card {
+      padding: 16px;
+      --label-color: var(--secondary-text-color);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 0;
+      align-items: stretch;
+      grid-auto-rows: auto;
+    }
+    .container.has-forecast {
+      grid-template-columns: 1fr 2fr auto;
+    }
+
+    /* Overview (content + image) */
+    .overview-panel {
+      display: grid;
+      grid-template-columns: 1.2fr auto;
+      gap: 40px;
+      align-items: center;
+      padding-right: 16px;
+    }
+    /* Metrics sections (separate items) */
+    .today-panel,
+    .totals-panel {
+      border-left: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .today-panel {
+      padding: 4px 16px 12px;
+    }
+    .totals-panel {
+      padding: 12px 16px 0;
+    }
+    .right-divider {
+      display: none;
+    }
+    .forecast-panel {
+      border-left: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      padding-left: 16px;
+      display: grid;
+      align-content: start;
+      align-self: stretch;
+    }
+
+    .content {
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric .label {
+      color: var(--secondary-text-color);
+      font-size: 0.9rem;
+    }
+    /* Left panel labels keep icon inline */
+    .overview-panel .metric .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .overview-panel .metric .label ha-icon {
+      color: var(--secondary-text-color);
+    }
+    .overview-panel .metric .value {
+      justify-self: end;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Top row icons on the left, spanning two text rows */
+    .metric-top {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 8px;
+    }
+    .metric-top > .icon {
+      grid-row: 1 / span 2;
+      align-self: center;
+      color: var(--secondary-text-color);
+    }
+    .metric-top > .label {
+      grid-column: 2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .metric-top > .value {
+      grid-column: 2;
+      white-space: nowrap;
+    }
+
+    .metric-bottom {
+      padding-left: 32px;
+    }
+
+    .metric .value {
+      font-weight: 700;
+      font-size: 2rem;
+      line-height: 1.1;
+    }
+
+    .metric .value.smaller {
+      font-size: 1.4rem;
+    }
+
+    .image {
+      width: 30%;
+      max-width: 180px;
+      min-width: 140px;
+      justify-self: end;
+    }
+
+    .image > img,
+    .image > svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .energy-section {
+      border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      margin-top: 12px;
+      padding-top: 12px;
+    }
+
+    /* Devices row */
+    .devices-row {
+      border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      margin-top: 12px;
+      padding-top: 12px;
+    }
+    .devices-row .badges {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+      width: 100%;
+      cursor: pointer;
+    }
+    .devices-row .badge {
+      display: grid;
+      grid-template-columns: auto 1fr auto; /* icon | name | value */
+      align-items: center;
+      gap: 8px;
+      background: var(--chip-background-color, rgba(0, 0, 0, 0.03));
+      color: var(--primary-text-color);
+      padding: 6px 10px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      width: 100%;
+      min-width: 0; /* allow inner ellipsis */
+      overflow: hidden; /* prevent overlap when space is tight */
+      cursor: pointer;
+      transition:
+        background-color 120ms ease,
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+    }
+    .devices-row .badge:hover {
+      background: rgba(var(--rgb-primary-color), 0.08);
+      border-color: var(--primary-color);
+    }
+    .devices-row .badge ha-icon {
+      color: var(--secondary-text-color);
+    }
+    .devices-row .badge .name {
+      max-width: 14ch;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .devices-row .badge .value {
+      font-weight: 600;
+      justify-self: end;
+      text-align: right;
+    }
+
+    /* Forecast mini panel */
+    .forecast {
+      border: 0;
+      border-radius: 10px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      max-width: 320px;
+      justify-self: end;
+    }
+    .forecast .title {
+      font-weight: 700;
+    }
+    .forecast .subtle {
+      color: var(--secondary-text-color);
+      font-size: 0.9rem;
+    }
+    .forecast .temp {
+      font-weight: 800;
+      font-size: 1.8rem;
+    }
+    .forecast .icon ha-icon {
+      width: 40px;
+      height: 40px;
+      --mdc-icon-size: 40px;
+    }
+
+    /* Grids for top/bottom sections */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+    .metrics-grid .metric {
+      min-width: 0;
+    }
+    .metrics-grid .metric .label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .metrics-grid .metric .value {
+      font-size: 1.25rem;
+    }
+
+    /* Stack sections on narrower screens */
+    @media (max-width: 1200px) {
+      .container,
+      .container.has-forecast {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        row-gap: 12px;
       }
-
-      .container { display: grid; grid-template-columns: 1fr 2fr; gap: 0; align-items: stretch; grid-auto-rows: auto; }
-      .container.has-forecast { grid-template-columns: 1fr 2fr auto; }
-
-      /* Overview (content + image) */
-      .overview-panel { display: grid; grid-template-columns: 1.2fr auto; gap: 40px; align-items: center; padding-right: 16px; }
-      /* Metrics sections (separate items) */
-      .today-panel, .totals-panel { border-left: 1px solid var(--divider-color, rgba(0,0,0,0.12)); padding-left: 16px; padding-right: 16px; }
-      .today-panel { padding: 4px 16px 12px; }
-      .totals-panel { padding: 12px 16px 0; }
-      .right-divider { display: none; }
-      .forecast-panel { border-left: 1px solid var(--divider-color, rgba(0,0,0,0.12)); padding-left: 16px; display: grid; align-content: start; align-self: stretch; }
-
-      .content { display: grid; gap: 10px; }
-
-      .metric .label { color: var(--secondary-text-color); font-size: 0.9rem; }
-      /* Left panel labels keep icon inline */
-      .overview-panel .metric .label { display: inline-flex; align-items: center; gap: 6px; }
-      .overview-panel .metric .label ha-icon { color: var(--secondary-text-color); }
-      .overview-panel .metric .value { justify-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-      /* Top row icons on the left, spanning two text rows */
-      .metric-top { display: grid; grid-template-columns: 24px 1fr; grid-template-rows: auto auto; column-gap: 8px; }
-      .metric-top > .icon { grid-row: 1 / span 2; align-self: center; color: var(--secondary-text-color); }
-      .metric-top > .label { grid-column: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .metric-top > .value { grid-column: 2; white-space: nowrap; }
-
-      .metric-bottom { padding-left: 32px; }
-
-      .metric .value {
-        font-weight: 700;
-        font-size: 2rem;
-        line-height: 1.1;
+      .overview-panel {
+        padding-right: 0;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: start;
       }
-
-      .metric .value.smaller { font-size: 1.4rem; }
-
+      .today-panel,
+      .totals-panel,
+      .forecast-panel {
+        border-left: none;
+        padding-left: 0;
+      }
+      .forecast {
+        justify-self: stretch;
+        max-width: none;
+      }
       .image {
-        width: 30%;
-        max-width: 180px;
-        min-width: 140px;
+        width: clamp(100px, 28vw, 150px);
+        max-width: 150px;
         justify-self: end;
       }
-
-      .image > img, .image > svg {
-        width: 100%;
-        height: auto;
-        display: block;
-        border-radius: 8px;
+      .metrics-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        min-width: 0;
       }
+      .today-panel .metric,
+      .totals-panel .metric {
+        min-width: 0;
+      }
+    }
 
-      .energy-section { border-top: 1px solid var(--divider-color, rgba(0,0,0,0.12)); margin-top: 12px; padding-top: 12px; }
+    /* Wide screens: left spans two rows; right sections occupy col 2 rows 1/2; forecast spans both rows in last column */
+    @media (min-width: 1201px) {
+      .overview-panel {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+      }
+      .today-panel {
+        grid-column: 2;
+        grid-row: 1;
+      }
+      .totals-panel {
+        grid-column: 2;
+        grid-row: 2;
+      }
+      .container.has-forecast .forecast-panel {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+      }
+    }
 
-      /* Devices row */
-      .devices-row { border-top: 1px solid var(--divider-color, rgba(0,0,0,0.12)); margin-top: 12px; padding-top: 12px; }
+    @media (max-width: 900px) {
       .devices-row .badges {
-        display: flex;
-        gap: 8px;
-        align-items: stretch;
-        width: 100%;
-        cursor: pointer;
+        flex-wrap: wrap;
+        justify-content: center;
       }
       .devices-row .badge {
-        display: grid;
-        grid-template-columns: auto 1fr auto; /* icon | name | value */
-        align-items: center;
-        gap: 8px;
-        background: var(--chip-background-color, rgba(0,0,0,0.03));
-        color: var(--primary-text-color);
-        padding: 6px 10px;
-        border-radius: 16px;
-        border: 1px solid transparent;
-        white-space: nowrap;
-        width: 100%;
-        min-width: 0; /* allow inner ellipsis */
-        overflow: hidden; /* prevent overlap when space is tight */
-        cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        max-width: 40%;
       }
-      .devices-row .badge:hover {
-        background: rgba(var(--rgb-primary-color), 0.08);
-        border-color: var(--primary-color);
+    }
+
+    @media (max-width: 568px) {
+      .overview-panel {
+        grid-template-columns: 1fr auto;
       }
-      .devices-row .badge ha-icon { color: var(--secondary-text-color); }
-      .devices-row .badge .name { max-width: 14ch; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-      .devices-row .badge .value { font-weight: 600; justify-self: end; text-align: right; }
-
-      /* Forecast mini panel */
-      .forecast { border: 0; border-radius: 10px; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; max-width: 320px; justify-self: end; }
-      .forecast .title { font-weight: 700; }
-      .forecast .subtle { color: var(--secondary-text-color); font-size: 0.9rem; }
-      .forecast .temp { font-weight: 800; font-size: 1.8rem; }
-      .forecast .icon ha-icon { width: 40px; height: 40px; --mdc-icon-size: 40px; }
-
-      /* Grids for top/bottom sections */
-      .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
-      .metrics-grid .metric { min-width: 0; }
-      .metrics-grid .metric .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .metrics-grid .metric .value { font-size: 1.25rem; }
-
-      /* Stack sections on narrower screens */
-      @media (max-width: 1200px) {
-        .container, .container.has-forecast { grid-template-columns: 1fr; grid-auto-rows: auto; row-gap: 12px; }
-        .overview-panel { padding-right: 0; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
-        .today-panel, .totals-panel, .forecast-panel { border-left: none; padding-left: 0; }
-        .forecast { justify-self: stretch; max-width: none; }
-        .image { width: clamp(100px, 28vw, 150px); max-width: 150px; justify-self: end; }
-        .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); min-width: 0; }
-        .today-panel .metric, .totals-panel .metric { min-width: 0; }
+      .image {
+        width: clamp(90px, 32vw, 130px);
+        max-width: 130px;
       }
-
-      /* Wide screens: left spans two rows; right sections occupy col 2 rows 1/2; forecast spans both rows in last column */
-      @media (min-width: 1201px) {
-        .overview-panel { grid-column: 1; grid-row: 1 / span 2; }
-        .today-panel { grid-column: 2; grid-row: 1; }
-        .totals-panel { grid-column: 2; grid-row: 2; }
-        .container.has-forecast .forecast-panel { grid-column: 3; grid-row: 1 / span 2; }
+      /* Right panel: maximum 2 items per row */
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
       }
-
-      @media (max-width: 900px) {
-        .devices-row .badges { flex-wrap: wrap; justify-content: center;}
-        .devices-row .badge { max-width: 40%; }
+      .metric-bottom {
+        padding-left: 12px;
       }
-
-      @media (max-width: 568px) {
-        .overview-panel { grid-template-columns: 1fr auto; }
-        .image { width: clamp(90px, 32vw, 130px); max-width: 130px; }
-        /* Right panel: maximum 2 items per row */
-        .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
-        .metric-bottom { padding-left: 12px; }
-      }
-    `;
+    }
+  `;
 
   // Type fields for TS
   private _hass: Hass | null;
   private _config: SolarCardConfig;
-  private _gridTodayCache: { key: string | null; dateKey: string | null; result: DisplayValue | null; inflight: boolean };
-  private _yieldTodayCache: { key: string | null; dateKey: string | null; result: DisplayValue | null; inflight: boolean };
+  private _gridTodayCache: {
+    key: string | null;
+    dateKey: string | null;
+    result: DisplayValue | null;
+    inflight: boolean;
+  };
+  private _yieldTodayCache: {
+    key: string | null;
+    dateKey: string | null;
+    result: DisplayValue | null;
+    inflight: boolean;
+  };
   private _energyFlowEl: HTMLElement | null;
   private _deviceBadges: DeviceBadgeItem[];
   private _devicesRefreshing: boolean;
@@ -255,26 +455,26 @@ class HaSolarCard extends LitElement {
   setConfig(config: SolarCardConfig) {
     this._config = {
       // Backward compat: accept old `yield_today_entity` as production
-      production_entity: config.production_entity ?? config.yield_today_entity ?? "",
-      current_consumption_entity: config.current_consumption_entity ?? "",
-      image_url: config.image_url ?? "",
+      production_entity: config.production_entity ?? config.yield_today_entity ?? '',
+      current_consumption_entity: config.current_consumption_entity ?? '',
+      image_url: config.image_url ?? '',
       show_energy_flow: config.show_energy_flow ?? false,
       show_top_devices: config.show_top_devices ?? false,
       top_devices_max: Math.min(Math.max(parseInt(String(config.top_devices_max ?? 4), 10) || 4, 1), 8),
       // Optional forecast section
       show_solar_forecast: config.show_solar_forecast ?? false,
-      weather_entity: config.weather_entity ?? "",
-      solar_forecast_today_entity: config.solar_forecast_today_entity ?? "",
+      weather_entity: config.weather_entity ?? '',
+      solar_forecast_today_entity: config.solar_forecast_today_entity ?? '',
       // Right section - top (today)
-      yield_today_entity: config.yield_today_entity ?? "",
-      grid_consumption_today_entity: config.grid_consumption_today_entity ?? "",
-      battery_percentage_entity: config.battery_percentage_entity ?? "",
-      inverter_state_entity: config.inverter_state_entity ?? "",
+      yield_today_entity: config.yield_today_entity ?? '',
+      grid_consumption_today_entity: config.grid_consumption_today_entity ?? '',
+      battery_percentage_entity: config.battery_percentage_entity ?? '',
+      inverter_state_entity: config.inverter_state_entity ?? '',
       // Right section - bottom (totals & settings)
-      total_yield_entity: config.total_yield_entity ?? "",
-      total_grid_consumption_entity: config.total_grid_consumption_entity ?? "",
-      battery_capacity_entity: config.battery_capacity_entity ?? "",
-      inverter_mode_entity: config.inverter_mode_entity ?? "",
+      total_yield_entity: config.total_yield_entity ?? '',
+      total_grid_consumption_entity: config.total_grid_consumption_entity ?? '',
+      battery_capacity_entity: config.battery_capacity_entity ?? '',
+      inverter_mode_entity: config.inverter_mode_entity ?? '',
       ...config,
     };
     this.requestUpdate();
@@ -282,30 +482,30 @@ class HaSolarCard extends LitElement {
 
   // Lovelace UI editor needs a static getter
   static getConfigElement() {
-    return document.createElement("solar-card-editor");
+    return document.createElement('solar-card-editor');
   }
 
   static getStubConfig() {
     return {
-      production_entity: "",
-      current_consumption_entity: "",
-      image_url: "",
+      production_entity: '',
+      current_consumption_entity: '',
+      image_url: '',
       show_energy_flow: false,
       show_top_devices: false,
       top_devices_max: 4,
       show_solar_forecast: false,
-      weather_entity: "",
-      solar_forecast_today_entity: "",
+      weather_entity: '',
+      solar_forecast_today_entity: '',
       // Right section - top (today)
-      yield_today_entity: "",
-      grid_consumption_today_entity: "",
-      battery_percentage_entity: "",
-      inverter_state_entity: "",
+      yield_today_entity: '',
+      grid_consumption_today_entity: '',
+      battery_percentage_entity: '',
+      inverter_state_entity: '',
       // Right section - bottom (totals & settings)
-      total_yield_entity: "",
-      total_grid_consumption_entity: "",
-      battery_capacity_entity: "",
-      inverter_mode_entity: "",
+      total_yield_entity: '',
+      total_grid_consumption_entity: '',
+      battery_capacity_entity: '',
+      inverter_mode_entity: '',
     };
   }
 
@@ -313,7 +513,11 @@ class HaSolarCard extends LitElement {
     const prev = this._hass;
     // Keep Energy Flow child card in sync with latest hass without forcing a full re-render
     if (this._energyFlowEl) {
-      try { (this._energyFlowEl as HassAware).hass = hass; } catch (_e) { /* ignore */ }
+      try {
+        (this._energyFlowEl as HassAware).hass = hass;
+      } catch (_e) {
+        /* ignore */
+      }
     }
 
     // No localStorage writes: localize() reads HA language directly now.
@@ -323,12 +527,16 @@ class HaSolarCard extends LitElement {
       if (lang && lang !== this._lastLang) {
         this._lastLang = lang;
       }
-    } catch (_e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
 
     // Build watched entity list and decide if a re-render is needed
     const cfg = this._config || {};
     const watched = new Set<string>();
-    const add = (eid?: string | null) => { if (eid) watched.add(eid); };
+    const add = (eid?: string | null) => {
+      if (eid) watched.add(eid);
+    };
     add(cfg.production_entity);
     add(cfg.current_consumption_entity);
     add(cfg.yield_today_entity);
@@ -351,10 +559,13 @@ class HaSolarCard extends LitElement {
     let changed = !prev; // first assignment always render
     if (prev && watched.size) {
       for (const eid of watched) {
-        if (prev.states?.[eid] !== hass.states?.[eid]) { changed = true; break; }
+        if (prev.states?.[eid] !== hass.states?.[eid]) {
+          changed = true;
+          break;
+        }
       }
       // Re-render on locale language change to update labels
-      if (!changed && (prev.locale?.language !== hass.locale?.language)) changed = true;
+      if (!changed && prev.locale?.language !== hass.locale?.language) changed = true;
     }
 
     this._hass = hass;
@@ -362,7 +573,9 @@ class HaSolarCard extends LitElement {
     if (changed) this.requestUpdate();
   }
 
-  get hass(): Hass | null { return this._hass; }
+  get hass(): Hass | null {
+    return this._hass;
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -382,7 +595,10 @@ class HaSolarCard extends LitElement {
     const cols = Array.from({ length: 6 });
     // Use `svg` template for nested SVG nodes to ensure correct namespace
     const cells = rows.flatMap((_r, r) =>
-      cols.map((_c, c) => svg`<rect x="${8 + c * 31}" y="${8 + r * 36}" width="28" height="28" rx="3" fill="rgba(255,255,255,0.25)" />`)
+      cols.map(
+        (_c, c) =>
+          svg`<rect x="${8 + c * 31}" y="${8 + r * 36}" width="28" height="28" rx="3" fill="rgba(255,255,255,0.25)" />`,
+      ),
     );
     return html`
       <svg viewBox="0 0 240 200" part="image" aria-hidden="true">
@@ -393,11 +609,11 @@ class HaSolarCard extends LitElement {
           </linearGradient>
         </defs>
         <g transform="translate(20,20)">
-          <rect x="0" y="0" width="200" height="120" rx="6" fill="url(#g1)"/>
+          <rect x="0" y="0" width="200" height="120" rx="6" fill="url(#g1)" />
           ${cells}
           <rect x="0" y="0" width="200" height="120" rx="6" fill="none" stroke="rgba(255,255,255,0.6)" />
         </g>
-        <rect x="40" y="150" width="160" height="10" rx="5" fill="#8892a0" opacity="0.7"/>
+        <rect x="40" y="150" width="160" height="10" rx="5" fill="#8892a0" opacity="0.7" />
       </svg>
     `;
   }
@@ -556,14 +772,14 @@ class HaSolarCard extends LitElement {
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
           ${this._renderOverviewPanel(overview.production, overview.consumption, overview.image_url)}
-          ${this._renderTodayPanel(today)}
-          ${this._renderTotalsPanel(totals)}
+          ${this._renderTodayPanel(today)} ${this._renderTotalsPanel(totals)}
           ${cfg.show_solar_forecast ? this._renderForecastPanel(forecast) : nothing}
         </div>
 
         ${cfg.show_top_devices && devicesList.length ? this._renderDevicesRow(devicesList) : nothing}
-
-        ${cfg.show_energy_flow ? html`<div id="energy-section" class="energy-section"><div id="energy-flow"></div></div>` : nothing}
+        ${cfg.show_energy_flow
+          ? html`<div id="energy-section" class="energy-section"><div id="energy-flow"></div></div>`
+          : nothing}
       </ha-card>
     `;
   }
@@ -583,11 +799,17 @@ class HaSolarCard extends LitElement {
     let gridToday = entityDisplay(hass, cfg.grid_consumption_today_entity);
     if ((!cfg.grid_consumption_today_entity || gridToday.value === '—') && cfg.total_grid_consumption_entity) {
       const derived = this._ensureGridTodayFromTotal(cfg.total_grid_consumption_entity);
-      gridToday = derived || { value: '…', unit: hass?.states?.[cfg.total_grid_consumption_entity]?.attributes?.unit_of_measurement || '' };
+      gridToday = derived || {
+        value: '…',
+        unit: hass?.states?.[cfg.total_grid_consumption_entity]?.attributes?.unit_of_measurement || '',
+      };
     }
     if ((!cfg.yield_today_entity || yieldToday.value === '—') && cfg.total_yield_entity) {
       const derivedY = this._ensureYieldTodayFromTotal(cfg.total_yield_entity);
-      yieldToday = derivedY || { value: '…', unit: hass?.states?.[cfg.total_yield_entity]?.attributes?.unit_of_measurement || '' };
+      yieldToday = derivedY || {
+        value: '…',
+        unit: hass?.states?.[cfg.total_yield_entity]?.attributes?.unit_of_measurement || '',
+      };
     }
     return {
       yieldToday,
@@ -616,110 +838,124 @@ class HaSolarCard extends LitElement {
     const showSolarPrimary = hasSolarForecast || !hasWeather;
     return {
       title: hasWeather ? localize('card.weather_today') : localize('card.solar_forecast'),
-      icon: hasWeather ? (weather.icon || 'mdi:weather-partly-cloudy') : 'mdi:white-balance-sunny',
-      majorValue: showSolarPrimary ? `${solarForecastToday.value}` : `${weather.temperature != null ? weather.temperature : '—'}`,
+      icon: hasWeather ? weather.icon || 'mdi:weather-partly-cloudy' : 'mdi:white-balance-sunny',
+      majorValue: showSolarPrimary
+        ? `${solarForecastToday.value}`
+        : `${weather.temperature != null ? weather.temperature : '—'}`,
       majorUnit: showSolarPrimary ? `${solarForecastToday.unit}` : `${weather.unit || ''}`,
-      minor: showSolarPrimary ? localize('card.expected_forecast') : (weather.condition || ''),
+      minor: showSolarPrimary ? localize('card.expected_forecast') : weather.condition || '',
     };
   }
 
   private _renderOverviewPanel(production: DisplayValue, consumption: DisplayValue, image_url: string) {
-    return html`
-      <div class="overview-panel">
-        <div class="content">
-          <div class="metric">
-            <div class="label"><ha-icon icon="mdi:solar-panel"></ha-icon> ${localize('card.production')}</div>
-            <div class="value">${production.value} ${production.unit}</div>
-          </div>
-          <div class="metric">
-            <div class="label"><ha-icon icon="mdi:power-socket"></ha-icon> ${localize('card.consumption')}</div>
-            <div class="value smaller">${consumption.value} ${consumption.unit}</div>
-          </div>
+    return html` <div class="overview-panel">
+      <div class="content">
+        <div class="metric">
+          <div class="label"><ha-icon icon="mdi:solar-panel"></ha-icon> ${localize('card.production')}</div>
+          <div class="value">${production.value} ${production.unit}</div>
         </div>
-        <div class="image">
-          ${image_url ? html`<img src="${image_url}" alt="Solar panels" loading="lazy" />` : this._defaultPanelsSvgHtml()}
+        <div class="metric">
+          <div class="label"><ha-icon icon="mdi:power-socket"></ha-icon> ${localize('card.consumption')}</div>
+          <div class="value smaller">${consumption.value} ${consumption.unit}</div>
         </div>
-      </div>`;
+      </div>
+      <div class="image">
+        ${image_url ? html`<img src="${image_url}" alt="Solar panels" loading="lazy" />` : this._defaultPanelsSvgHtml()}
+      </div>
+    </div>`;
   }
 
-  private _renderTodayPanel(today: { yieldToday: DisplayValue; gridToday: DisplayValue; batteryPct: DisplayValue; inverterState: DisplayValue }) {
-    return html`
-      <div class="today-panel metrics-grid">
-        <div class="metric metric-top">
-          <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
-          <div class="label">${localize('card.yield_today')}</div>
-          <div class="value smaller">${today.yieldToday.value} ${today.yieldToday.unit}</div>
-        </div>
-        <div class="metric metric-top">
-          <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
-          <div class="label">${localize('card.grid_today')}</div>
-          <div class="value smaller">${today.gridToday.value} ${today.gridToday.unit}</div>
-        </div>
-        <div class="metric metric-top">
-          <ha-icon class="icon" icon="mdi:battery"></ha-icon>
-          <div class="label">${localize('card.battery')}</div>
-          <div class="value smaller">${today.batteryPct.value} ${today.batteryPct.unit || '%'}</div>
-        </div>
-        <div class="metric metric-top">
-          <ha-icon class="icon" icon="mdi:power"></ha-icon>
-          <div class="label">${localize('card.inverter_state')}</div>
-          <div class="value smaller">${today.inverterState.value}</div>
-        </div>
-      </div>`;
+  private _renderTodayPanel(today: {
+    yieldToday: DisplayValue;
+    gridToday: DisplayValue;
+    batteryPct: DisplayValue;
+    inverterState: DisplayValue;
+  }) {
+    return html` <div class="today-panel metrics-grid">
+      <div class="metric metric-top">
+        <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
+        <div class="label">${localize('card.yield_today')}</div>
+        <div class="value smaller">${today.yieldToday.value} ${today.yieldToday.unit}</div>
+      </div>
+      <div class="metric metric-top">
+        <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
+        <div class="label">${localize('card.grid_today')}</div>
+        <div class="value smaller">${today.gridToday.value} ${today.gridToday.unit}</div>
+      </div>
+      <div class="metric metric-top">
+        <ha-icon class="icon" icon="mdi:battery"></ha-icon>
+        <div class="label">${localize('card.battery')}</div>
+        <div class="value smaller">${today.batteryPct.value} ${today.batteryPct.unit || '%'}</div>
+      </div>
+      <div class="metric metric-top">
+        <ha-icon class="icon" icon="mdi:power"></ha-icon>
+        <div class="label">${localize('card.inverter_state')}</div>
+        <div class="value smaller">${today.inverterState.value}</div>
+      </div>
+    </div>`;
   }
 
-  private _renderTotalsPanel(totals: { totalYield: DisplayValue; totalGrid: DisplayValue; batteryCapacity: DisplayValue; inverterModeDisplay: DisplayValue }) {
-    return html`
-      <div class="totals-panel metrics-grid">
-        <div class="metric metric-bottom">
-          <div class="label">${localize('card.total_yield')}</div>
-          <div class="value smaller">${totals.totalYield.value} ${totals.totalYield.unit}</div>
-        </div>
-        <div class="metric metric-bottom">
-          <div class="label">${localize('card.grid_consumption')}</div>
-          <div class="value smaller">${totals.totalGrid.value} ${totals.totalGrid.unit}</div>
-        </div>
-        <div class="metric metric-bottom">
-          <div class="label">${localize('card.battery_capacity')}</div>
-          <div class="value smaller">${totals.batteryCapacity.value} ${totals.batteryCapacity.unit}</div>
-        </div>
-        <div class="metric metric-bottom">
-          <div class="label">${localize('card.inverter_mode')}</div>
-          <div class="value smaller">${totals.inverterModeDisplay.value}</div>
-        </div>
-      </div>`;
+  private _renderTotalsPanel(totals: {
+    totalYield: DisplayValue;
+    totalGrid: DisplayValue;
+    batteryCapacity: DisplayValue;
+    inverterModeDisplay: DisplayValue;
+  }) {
+    return html` <div class="totals-panel metrics-grid">
+      <div class="metric metric-bottom">
+        <div class="label">${localize('card.total_yield')}</div>
+        <div class="value smaller">${totals.totalYield.value} ${totals.totalYield.unit}</div>
+      </div>
+      <div class="metric metric-bottom">
+        <div class="label">${localize('card.grid_consumption')}</div>
+        <div class="value smaller">${totals.totalGrid.value} ${totals.totalGrid.unit}</div>
+      </div>
+      <div class="metric metric-bottom">
+        <div class="label">${localize('card.battery_capacity')}</div>
+        <div class="value smaller">${totals.batteryCapacity.value} ${totals.batteryCapacity.unit}</div>
+      </div>
+      <div class="metric metric-bottom">
+        <div class="label">${localize('card.inverter_mode')}</div>
+        <div class="value smaller">${totals.inverterModeDisplay.value}</div>
+      </div>
+    </div>`;
   }
 
-  private _renderForecastPanel(forecast: { title: string; icon: string; majorValue: string; majorUnit: string; minor: string }) {
-    return html`
-      <div class="forecast-panel">
-        <div class="forecast" id="forecast">
-          <div>
-            <div class="title">${forecast.title}</div>
-            <div class="subtle">${this._formatTodayDate()}</div>
-            <div class="temp">${forecast.majorValue} ${forecast.majorUnit}</div>
-            <div class="subtle">${forecast.minor}</div>
-          </div>
-          <div class="icon">
-            <ha-icon icon="${forecast.icon}"></ha-icon>
-          </div>
+  private _renderForecastPanel(forecast: {
+    title: string;
+    icon: string;
+    majorValue: string;
+    majorUnit: string;
+    minor: string;
+  }) {
+    return html` <div class="forecast-panel">
+      <div class="forecast" id="forecast">
+        <div>
+          <div class="title">${forecast.title}</div>
+          <div class="subtle">${this._formatTodayDate()}</div>
+          <div class="temp">${forecast.majorValue} ${forecast.majorUnit}</div>
+          <div class="subtle">${forecast.minor}</div>
         </div>
-      </div>`;
+        <div class="icon">
+          <ha-icon icon="${forecast.icon}"></ha-icon>
+        </div>
+      </div>
+    </div>`;
   }
 
   private _renderDevicesRow(devicesList: DeviceBadgeItem[]) {
-    return html`
-      <div class="devices-row" id="devices-row" @click=${this._onDevicesClick}>
-        <div class="badges">
-          ${devicesList.map(
-            (it) => html`<div class="badge" role="listitem" data-stat-id="${it.id}">
+    return html` <div class="devices-row" id="devices-row" @click=${this._onDevicesClick}>
+      <div class="badges">
+        ${devicesList.map(
+          (it) =>
+            html`<div class="badge" role="listitem" data-stat-id="${it.id}">
               <ha-icon icon="${it.icon || 'mdi:power-plug'}"></ha-icon>
               <span class="name">${it.name}</span>
               <span class="value">${formatNumberLocale(it.watts, this._hass, { maximumFractionDigits: 0 })} W</span>
-            </div>`
-          )}
-        </div>
-      </div>`;
+            </div>`,
+        )}
+      </div>
+    </div>`;
   }
 
   updated() {
@@ -729,7 +965,9 @@ class HaSolarCard extends LitElement {
   }
 
   _onDevicesClick = (ev: Event) => {
-    const target = ev.composedPath ? (ev.composedPath() as EventTarget[]).find((n) => (n as HTMLElement)?.classList?.contains?.('badge')) : (ev.target as HTMLElement).closest?.('.badge');
+    const target = ev.composedPath
+      ? (ev.composedPath() as EventTarget[]).find((n) => (n as HTMLElement)?.classList?.contains?.('badge'))
+      : (ev.target as HTMLElement).closest?.('.badge');
     const statId = (target as HTMLElement | undefined)?.getAttribute?.('data-stat-id');
     if (statId) this._openBadgeDevice(statId);
   };
@@ -742,7 +980,7 @@ class HaSolarCard extends LitElement {
     this._devicesRefreshing = true;
     try {
       // Refresh Energy preferences + build power entity map for live updates
-      const prefs = await this._hass!.callWS<EnergyPreferences>({ type: "energy/get_prefs" });
+      const prefs = await this._hass!.callWS<EnergyPreferences>({ type: 'energy/get_prefs' });
       this._deviceList = Array.isArray(prefs?.device_consumption) ? prefs.device_consumption : [];
       await this._ensureDevicePowerMap();
       this._devicesLastFetch = Date.now();
@@ -860,7 +1098,17 @@ class HaSolarCard extends LitElement {
     const states = this._hass?.states || {};
     const regById = this._entityRegistryByEntityId || {};
     // Prefer specific domains representative of a device
-    const domainPreference = ['light', 'switch', 'climate', 'fan', 'vacuum', 'media_player', 'water_heater', 'humidifier', 'cover'];
+    const domainPreference = [
+      'light',
+      'switch',
+      'climate',
+      'fan',
+      'vacuum',
+      'media_player',
+      'water_heater',
+      'humidifier',
+      'cover',
+    ];
     // 1) Use first entity with explicit icon in entity registry (prefer domains)
     for (const dom of domainPreference) {
       const eid = entities.find((e) => e.startsWith(dom + '.'));
@@ -921,18 +1169,18 @@ class HaSolarCard extends LitElement {
 
   async _fetchTopConsumptionDevices(maxCount: number): Promise<DeviceBadgeItem[]> {
     // Pull devices from Energy preferences and compute recent power from energy deltas
-    const prefs = await this._hass!.callWS<EnergyPreferences>({ type: "energy/get_prefs" });
+    const prefs = await this._hass!.callWS<EnergyPreferences>({ type: 'energy/get_prefs' });
     const devices = Array.isArray(prefs?.device_consumption) ? prefs.device_consumption : [];
     const statIds = devices.map((d) => d.stat_consumption).filter((s) => !!s);
     if (!statIds.length) return [];
     const end = new Date();
     const start = new Date(end.getTime() - 60 * 60 * 1000); // last 60 minutes
     const stats = await this._hass!.callWS<StatisticsDuringPeriod>({
-      type: "recorder/statistics_during_period",
+      type: 'recorder/statistics_during_period',
       start_time: start.toISOString(),
       end_time: end.toISOString(),
       statistic_ids: statIds,
-      period: "5minute",
+      period: '5minute',
     });
     const byId: StatisticsDuringPeriod = (stats as StatisticsDuringPeriod) || {};
     const items: DeviceBadgeItem[] = [];
@@ -969,7 +1217,7 @@ class HaSolarCard extends LitElement {
     const max = this._config?.top_devices_max || 4;
     // Only show devices currently consuming power (instantaneous)
     const list = this._computeTopDevicesLive(max);
-    let section = this.shadowRoot?.getElementById("devices-row");
+    let section = this.shadowRoot?.getElementById('devices-row');
     if (!list.length) {
       if (section) section.remove();
       this._deviceBadges = [];
@@ -978,14 +1226,14 @@ class HaSolarCard extends LitElement {
     const columns = Math.max(1, list.length);
     if (!section) {
       // create section structure once
-      section = document.createElement("div");
+      section = document.createElement('div');
       section.innerHTML = `
         <div class="devices-row" id="devices-row">
           <div class="devices-divider"></div>
           <div class="badges" role="list" style="--dev-cols: ${columns};"></div>
         </div>`;
-      const card = this.shadowRoot?.querySelector("ha-card");
-      const energySection = this.shadowRoot?.getElementById("energy-section");
+      const card = this.shadowRoot?.querySelector('ha-card');
+      const energySection = this.shadowRoot?.getElementById('energy-section');
       if (card) {
         if (energySection && section.firstElementChild) {
           card.insertBefore(section.firstElementChild, energySection);
@@ -993,11 +1241,11 @@ class HaSolarCard extends LitElement {
           card.appendChild(section.firstElementChild);
         }
       }
-      section = this.shadowRoot?.getElementById("devices-row");
+      section = this.shadowRoot?.getElementById('devices-row');
     }
 
     // Update badges incrementally when layout is unchanged
-    const row = this.shadowRoot?.getElementById("devices-row");
+    const row = this.shadowRoot?.getElementById('devices-row');
     const badges = row?.querySelector('.badges');
     const prevIds = Array.isArray(this._deviceBadges) ? this._deviceBadges.map((d) => d.id) : [];
     const newIds = list.map((d) => d.id);
@@ -1023,9 +1271,9 @@ class HaSolarCard extends LitElement {
               <ha-icon icon="${escapeHtml(it.icon || 'mdi:power-plug')}"></ha-icon>
               <span class="name">${escapeHtml(it.name)}</span>
               <span class="value">${escapeHtml(formatNumberLocale(it.watts, this._hass, { maximumFractionDigits: 0 }))} W</span>
-            </div>`
+            </div>`,
         )
-        .join("");
+        .join('');
       if (badges) {
         badges.setAttribute('style', `--dev-cols: ${columns};`);
         badges.innerHTML = htmlBadges;
@@ -1036,7 +1284,7 @@ class HaSolarCard extends LitElement {
       this._boundDeviceRowClick = new WeakSet<HTMLElement>();
     }
     if (row && !this._boundDeviceRowClick.has(row)) {
-      row.addEventListener("click", (ev) => {
+      row.addEventListener('click', (ev) => {
         const target = (ev.target as HTMLElement).closest?.('.badge');
         if (!target) return;
         const statId = target.getAttribute('data-stat-id');
@@ -1079,14 +1327,17 @@ class HaSolarCard extends LitElement {
     try {
       const d = new Date();
       const day = d.toLocaleDateString(this._hass?.locale?.language || undefined, { weekday: 'short' });
-      return `${day} ${d.getDate()}/${d.getMonth()+1}`;
+      return `${day} ${d.getDate()}/${d.getMonth() + 1}`;
     } catch (_e) {
       const d = new Date();
-      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
     }
   }
 
-  _weatherDisplay(hass: Hass | null, entityId?: string | null): { temperature: string | null; unit?: string; condition?: string; icon?: string } {
+  _weatherDisplay(
+    hass: Hass | null,
+    entityId?: string | null,
+  ): { temperature: string | null; unit?: string; condition?: string; icon?: string } {
     if (!entityId) return { temperature: null };
     const st = hass?.states?.[entityId];
     if (!st) return { temperature: null };
@@ -1117,7 +1368,7 @@ class HaSolarCard extends LitElement {
   }
 
   async _renderEnergyFlow() {
-    const container = this.shadowRoot?.getElementById("energy-flow") as HTMLElement | null;
+    const container = this.shadowRoot?.getElementById('energy-flow') as HTMLElement | null;
     if (!container) return;
     // Reuse existing element if possible
     if (this._energyFlowEl && this._energyFlowEl.parentElement === container) {
@@ -1128,17 +1379,17 @@ class HaSolarCard extends LitElement {
     try {
       const helpers = await window.loadCardHelpers?.();
       if (helpers?.createCardElement) {
-        el = helpers.createCardElement({ type: "energy-sankey" });
+        el = helpers.createCardElement({ type: 'energy-sankey' });
       }
     } catch (_e) {
       // ignore, try fallback below
     }
     if (!el) {
-      el = document.createElement("hui-energy-sankey-card");
-      (el as HassAware).setConfig?.({ type: "energy-sankey" });
+      el = document.createElement('hui-energy-sankey-card');
+      (el as HassAware).setConfig?.({ type: 'energy-sankey' });
     }
     (el as HassAware).hass = this._hass;
-    container.innerHTML = "";
+    container.innerHTML = '';
     container.appendChild(el);
     this._energyFlowEl = el;
   }
@@ -1147,7 +1398,11 @@ class HaSolarCard extends LitElement {
   _ensureGridTodayFromTotal(entityId: string): DisplayValue | null {
     if (!this._hass || !entityId) return null;
     const dateKey = new Date().toDateString();
-    if (this._gridTodayCache.key === entityId && this._gridTodayCache.dateKey === dateKey && this._gridTodayCache.result) {
+    if (
+      this._gridTodayCache.key === entityId &&
+      this._gridTodayCache.dateKey === dateKey &&
+      this._gridTodayCache.result
+    ) {
       return this._gridTodayCache.result;
     }
     if (!this._gridTodayCache.inflight) {
@@ -1156,12 +1411,15 @@ class HaSolarCard extends LitElement {
       this._gridTodayCache.dateKey = dateKey;
       this._fetchTodayDiff(entityId)
         .then((num) => {
-          const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || "";
+          const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '';
           const formatted = formatNumberLocale(num, this._hass, { maximumFractionDigits: 2 });
           this._gridTodayCache.result = { value: formatted, unit };
         })
         .catch(() => {
-          this._gridTodayCache.result = { value: "—", unit: this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || "" };
+          this._gridTodayCache.result = {
+            value: '—',
+            unit: this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '',
+          };
         })
         .finally(() => {
           this._gridTodayCache.inflight = false;
@@ -1175,7 +1433,11 @@ class HaSolarCard extends LitElement {
   _ensureYieldTodayFromTotal(entityId: string): DisplayValue | null {
     if (!this._hass || !entityId) return null;
     const dateKey = new Date().toDateString();
-    if (this._yieldTodayCache.key === entityId && this._yieldTodayCache.dateKey === dateKey && this._yieldTodayCache.result) {
+    if (
+      this._yieldTodayCache.key === entityId &&
+      this._yieldTodayCache.dateKey === dateKey &&
+      this._yieldTodayCache.result
+    ) {
       return this._yieldTodayCache.result;
     }
     if (!this._yieldTodayCache.inflight) {
@@ -1184,12 +1446,15 @@ class HaSolarCard extends LitElement {
       this._yieldTodayCache.dateKey = dateKey;
       this._fetchTodayDiff(entityId)
         .then((num) => {
-          const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || "";
+          const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '';
           const formatted = formatNumberLocale(num, this._hass, { maximumFractionDigits: 2 });
           this._yieldTodayCache.result = { value: formatted, unit };
         })
         .catch(() => {
-          this._yieldTodayCache.result = { value: "—", unit: this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || "" };
+          this._yieldTodayCache.result = {
+            value: '—',
+            unit: this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '',
+          };
         })
         .finally(() => {
           this._yieldTodayCache.inflight = false;
@@ -1207,7 +1472,7 @@ class HaSolarCard extends LitElement {
     const startIso = start.toISOString();
     const endIso = now.toISOString();
     const path = `history/period/${startIso}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${endIso}&minimal_response`;
-    const resp = await hass.callApi<HistoryPeriodResponse>("GET", path);
+    const resp = await hass.callApi<HistoryPeriodResponse>('GET', path);
     if (!Array.isArray(resp) || !Array.isArray(resp[0]) || !resp[0].length) return 0;
     const series = resp[0];
     const nums = series
@@ -1224,4 +1489,4 @@ class HaSolarCard extends LitElement {
   }
 }
 
-customElements.define("solar-card", HaSolarCard);
+customElements.define('solar-card', HaSolarCard);
