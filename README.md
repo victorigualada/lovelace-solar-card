@@ -1,8 +1,15 @@
 # Solar Energy Card for Home Assistant
 
-Clean, compact solar dashboard card showing production, consumption, key daily metrics, totals, optional device consumers, and an optional forecast panel — all in one responsive card.
+<div style="display: flex; align-items: center; justify-content: center;">
+<img src="docs/images/overview-desktop.png" width="600"/>
+</div>
 
-![Overview – Desktop](docs/images/overview-desktop.png)
+### Also with optional built-in Energy Sankey flow graph
+<div style="display: flex; align-items: center; justify-content: center;">
+<img src="docs/images/overview-desktop-full.png" width="600"/> <img src="./docs/images/overview-mobile.png" height="345" style="padding-left: 20px"/>
+</div>
+
+
 
 ## Features
 
@@ -12,7 +19,7 @@ Clean, compact solar dashboard card showing production, consumption, key daily m
 - Optional devices row: lists top consuming devices (from Energy preferences)
 - Optional energy flow: embeds the built‑in Energy Sankey card below
 - Optional compact forecast panel: weather or expected solar forecast
-- Localized UI: en, es, fr, de, pt (+ nb partial); auto‑syncs to HA language
+- Localized UI: en, es, fr, de, pt; auto‑syncs to HA language
 - Responsive layout: adapts cleanly from wide to mobile widths
 
 ## Installation
@@ -29,7 +36,7 @@ type: module
 ```
 
 ### Manual
-1. Download `dist/solar-card.js`
+1. Download `solar-card.js` from the [latest release](https://github.com/victorigualada/lovelace-solar-card/releases)
 2. Place it in `www/` (e.g., `/config/www/solar-card.js`)
 3. Add the resource:
 
@@ -42,8 +49,11 @@ type: module
 
 Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration. 
 
-![Configuration](docs/images/configuration.png)
+<div style="display: flex; align-items: center; justify-content: center;">
+<img src="docs/images/configuration.png" width="300"/>
+</div>
 
+<br />
 
 You can also use YAML:
 
