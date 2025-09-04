@@ -1,0 +1,17 @@
+{
+  "card": {
+    "production": "Production",
+    "consumption": "Consommation",
+    "yield_today": "Production aujourd'hui",
+    "grid_today": "Réseau aujourd'hui",
+    "battery": "Batterie",
+    "inverter_state": "État de l'onduleur",
+    "total_yield": "Production totale",
+    "grid_consumption": "Consommation réseau",
+    "battery_capacity": "Capacité de la batterie",
+    "inverter_mode": "Mode de l'onduleur",
+    "weather_today": "Météo aujourd'hui",
+    "solar_forecast": "Prévision solaire",
+    "expected_forecast": "Prévision attendue"
+  }
+}

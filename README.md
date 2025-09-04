@@ -1,0 +1,104 @@
+# Solar Energy Card for Home Assistant
+
+Clean, compact solar dashboard card showing production, consumption, key daily metrics, totals, optional device consumers, and an optional forecast panel — all in one responsive card.
+
+![Overview – Desktop](docs/images/overview-desktop.png)
+
+## Features
+
+- Left panel: production and current consumption with optional image/illustration
+- Today metrics: yield today, grid today, battery percentage, inverter state
+- Totals: lifetime yield, total grid consumption, battery capacity, inverter mode
+- Optional devices row: lists top consuming devices (from Energy preferences)
+- Optional energy flow: embeds the built‑in Energy Sankey card below
+- Optional compact forecast panel: weather or expected solar forecast
+- Localized UI: en, es, fr, de, pt (+ nb partial); auto‑syncs to HA language
+- Responsive layout: adapts cleanly from wide to mobile widths
+
+## Installation
+
+### HACS (Custom Repository)
+1. In HACS → Frontend → Three dots → Custom repositories
+2. Add this repo URL as type “Lovelace”
+3. Install “Solar Energy Card”
+4. Add the resource:
+
+```yaml
+url: /hacsfiles/lovelace-solar-card/solar-card.js
+type: module
+```
+
+### Manual
+1. Download `dist/solar-card.js`
+2. Place it in `www/` (e.g., `/config/www/solar-card.js`)
+3. Add the resource:
+
+```yaml
+url: /local/solar-card.js
+type: module
+```
+
+## Usage
+
+Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration. 
+
+![Configuration](docs/images/configuration.png)
+
+
+You can also use YAML:
+
+```yaml
+type: custom:solar-card
+# Left panel
+production_entity: sensor.pv_production_now            # W or kW
+current_consumption_entity: sensor.house_consumption    # W or kW
+image_url: https://example.com/your/solar.jpg          # optional
+
+# Today (top-right)
+yield_today_entity: sensor.pv_yield_today               # kWh (optional)
+grid_consumption_today_entity: sensor.grid_today        # kWh (optional)
+battery_percentage_entity: sensor.battery_soc           # %
+inverter_state_entity: sensor.inverter_state            # text
+
+# Totals (bottom-right)
+total_yield_entity: sensor.pv_total_yield               # kWh
+total_grid_consumption_entity: sensor.grid_total        # kWh
+battery_capacity_entity: sensor.battery_capacity        # kWh (optional)
+inverter_mode_entity: sensor.inverter_mode              # text
+
+# Options
+show_energy_flow: true                                  # show built‑in Energy Sankey
+show_top_devices: true                                  # show devices row
+top_devices_max: 4                                      # 1–8
+show_solar_forecast: true                               # enable forecast column
+weather_entity: weather.home                            # optional (shows weather)
+solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forecast)
+```
+
+Notes:
+- If `yield_today_entity` or `grid_consumption_today_entity` are not set (or unavailable), the card will compute today’s value from their respective totals using the history API.
+- The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
+- The Energy Flow section requires that your Energy dashboard is configured.
+
+## FAQ
+
+- Why don’t I see devices? Ensure you have devices configured under Settings → Energy → Individual devices, and that matching power sensors exist (W/kW).
+- Can the card compute “today” values? Yes; if daily sensors are missing, it computes deltas since midnight from total (cumulative) sensors.
+- Where do the icons for the devices come from? The card prefers device registry icon, then entity icons, then domain heuristics.
+
+## Contributing / Development
+
+Requirements
+- Node.js >= 18.18 (for the ESLint + TS toolchain)
+
+Commands
+- Install: `yarn`
+- Dev server: `yarn start` (Rollup watch)
+- Build: `yarn build`
+
+During development, add the built resource in HA as:
+
+```yaml
+url: 'http://127.0.0.1:5000/solar-card.js'
+type: module
+```

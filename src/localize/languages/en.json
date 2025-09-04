@@ -1,0 +1,23 @@
+{
+  "common": {
+    "version": "Version",
+    "invalid_configuration": "Invalid configuration",
+    "show_warning": "Show Warning",
+    "show_error": "Show Error"
+  },
+  "card": {
+    "production": "Production",
+    "consumption": "Consumption",
+    "yield_today": "Yield today",
+    "grid_today": "Grid today",
+    "battery": "Battery",
+    "inverter_state": "Inverter state",
+    "total_yield": "Total yield",
+    "grid_consumption": "Grid consumption",
+    "battery_capacity": "Battery capacity",
+    "inverter_mode": "Inverter mode",
+    "weather_today": "Weather today",
+    "solar_forecast": "Solar forecast",
+    "expected_forecast": "Expected forecast"
+  }
+}
