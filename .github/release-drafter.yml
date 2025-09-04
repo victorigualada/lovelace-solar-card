@@ -1,0 +1,31 @@
+name-template: '$RESOLVED_VERSION'
+tag-template: '$RESOLVED_VERSION'
+exclude-labels:
+  - 'skip-changelog'
+version-resolver:
+  minor:
+    labels:
+      - 'feat'
+  default: patch
+
+categories:
+  - title: '🚀 Features'
+    label: 'feature'
+
+  - title: '🐛 Bug Fixes'
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
+      
+  - title: ':arrow_up: Dependencies'
+    label: 'dependencies'
+    collapse-after: 1
+
+change-template: '- [#$NUMBER] $TITLE @$AUTHOR'
+sort-direction: ascending
+
+template: |
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...$RESOLVED_VERSION
