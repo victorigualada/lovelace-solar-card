@@ -4,7 +4,6 @@ import * as fr from './languages/fr.json';
 import * as de from './languages/de.json';
 import * as pt from './languages/pt.json';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const languages: any = {
   en,
   es,
@@ -22,7 +21,11 @@ export function localize(string: string, search = '', replace = ''): string {
       (document.querySelector('hc-main') as any) ||
       (document.querySelector('home-assistant-main') as any);
     const hass = root?.hass;
-    lang = (hass?.locale?.language || hass?.language || document.documentElement?.lang || navigator.language || 'en') as string;
+    lang = (hass?.locale?.language ||
+      hass?.language ||
+      document.documentElement?.lang ||
+      navigator.language ||
+      'en') as string;
   } catch (_e) {
     lang = (document.documentElement?.lang || navigator.language || 'en') as string;
   }

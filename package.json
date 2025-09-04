@@ -12,7 +12,6 @@
     "solar",
     "energy"
   ],
-  "type": "module",
   "module": "solar-card.js",
   "repository": "https://github.com/victorigualada/lovelace-solar-card",
   "author": "victorigualada",
@@ -54,7 +53,8 @@
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run rollup",
-    "lint": "echo 'skip lint for JS entry'",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix && prettier --write \"src/**/*.ts\"",
     "rollup": "rollup -c"
   }
 }

@@ -6,9 +6,19 @@ export class HaSolarCardEditor extends LitElement {
   private _hass: Hass | null;
   public config: SolarCardConfig;
   static styles = css`
-    .editor { padding: 8px 0; display: grid; gap: 16px; }
-    .section { display: grid; gap: 8px; }
-    .section h3 { margin: 8px 0 0; font-weight: 600; }
+    .editor {
+      padding: 8px 0;
+      display: grid;
+      gap: 16px;
+    }
+    .section {
+      display: grid;
+      gap: 8px;
+    }
+    .section h3 {
+      margin: 8px 0 0;
+      font-weight: 600;
+    }
   `;
 
   static get properties() {
@@ -29,7 +39,9 @@ export class HaSolarCardEditor extends LitElement {
     this.requestUpdate();
   }
 
-  get hass(): Hass | null { return this._hass; }
+  get hass(): Hass | null {
+    return this._hass;
+  }
 
   setConfig(config: SolarCardConfig) {
     this.config = config || {};
@@ -68,7 +80,10 @@ export class HaSolarCardEditor extends LitElement {
       // @ts-expect-error dynamic schema
       options.push({ name: 'weather_entity', selector: { entity: { domain: 'weather' } } });
       // @ts-expect-error dynamic schema
-      options.push({ name: 'solar_forecast_today_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } });
+      options.push({
+        name: 'solar_forecast_today_entity',
+        selector: { entity: { domain: 'sensor', device_class: 'energy' } },
+      });
     }
     return { overview, today, totals, options };
   }
@@ -134,7 +149,7 @@ export class HaSolarCardEditor extends LitElement {
         detail: { config: newConfig },
         bubbles: true,
         composed: true,
-      })
+      }),
     );
   };
 
@@ -163,22 +178,16 @@ export class HaSolarCardEditor extends LitElement {
 
   _computeHelper = (schema) => {
     const helperMap = {
-      yield_today_entity:
-        "Optional. Leave empty to compute from 'Total yield' using today's history (00:00 → now).",
+      yield_today_entity: "Optional. Leave empty to compute from 'Total yield' using today's history (00:00 → now).",
       grid_consumption_today_entity:
         "Optional. Leave empty to compute from 'Total grid consumption' using today's history (00:00 → now).",
-      show_energy_flow:
-        'Adds the built-in Energy Flow (Sankey) graph below this card (requires Energy configuration).',
+      show_energy_flow: 'Adds the built-in Energy Flow (Sankey) graph below this card (requires Energy configuration).',
       show_top_devices:
         'Adds a single-row list of top-consuming devices from Energy preferences (requires Energy configuration).',
-      top_devices_max:
-        'Number of top-consuming device badges to display',
-      show_solar_forecast:
-        'Shows a compact forecast panel aligned to the right.',
-      weather_entity:
-        'If set, shows temperature and condition for today.',
-      solar_forecast_today_entity:
-        "If set and no weather entity, shows today's expected solar production.",
+      top_devices_max: 'Number of top-consuming device badges to display',
+      show_solar_forecast: 'Shows a compact forecast panel aligned to the right.',
+      weather_entity: 'If set, shows temperature and condition for today.',
+      solar_forecast_today_entity: "If set and no weather entity, shows today's expected solar production.",
     } as Record<string, string>;
     return helperMap[schema.name];
   };

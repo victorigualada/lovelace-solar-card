@@ -32,4 +32,3 @@ export interface DeviceBadgeItem {
   watts: number;
   icon?: string;
 }
-

@@ -51,4 +51,3 @@ export interface DeviceConsumptionPref {
 export interface EnergyPreferences {
   device_consumption?: DeviceConsumptionPref[];
 }
-
