@@ -79,9 +79,9 @@ export class HaSolarCardEditor extends LitElement {
     if (cfg.show_solar_forecast) {
       // @ts-expect-error dynamic schema
       options.push({ name: 'weather_entity', selector: { entity: { domain: 'weather' } } });
-      // @ts-expect-error dynamic schema
       options.push({
         name: 'solar_forecast_today_entity',
+        // @ts-expect-error dynamic schema
         selector: { entity: { domain: 'sensor', device_class: 'energy' } },
       });
     }

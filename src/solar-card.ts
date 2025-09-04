@@ -579,6 +579,11 @@ class HaSolarCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
+    // Mark preview when rendered inside card picker or when very narrow
+    try {
+      const inPicker = this._isInCardPicker() || (this.offsetWidth && this.offsetWidth < 380);
+      this.toggleAttribute('data-preview', !!inPicker);
+    } catch (_e) { /* ignore */ }
     if (this._config?.show_top_devices) this._maybeRefreshTopDevices();
   }
 
@@ -592,6 +597,7 @@ class HaSolarCard extends LitElement {
 
   _defaultPanelsSvgHtml() {
     const rows = Array.from({ length: 3 });
+    // Always render a full grid of cells; preview sizing is controlled via CSS only
     const cols = Array.from({ length: 6 });
     // Use `svg` template for nested SVG nodes to ensure correct namespace
     const cells = rows.flatMap((_r, r) =>
@@ -616,6 +622,28 @@ class HaSolarCard extends LitElement {
         <rect x="40" y="150" width="160" height="10" rx="5" fill="#8892a0" opacity="0.7" />
       </svg>
     `;
+  }
+
+  private _isInCardPicker(): boolean {
+    try {
+      // Walk across shadow roots to detect hui-card-picker or hui-card-preview
+      let el: any = this as any;
+      while (el) {
+        if (el.closest && el.closest('hui-card-picker, hui-card-preview')) return true;
+        const rn = el.getRootNode?.();
+        el = rn?.host || null;
+      }
+    } catch (_e) { /* ignore */ }
+    return false;
+  }
+
+  private _isPreview(): boolean {
+    try {
+      if (this.hasAttribute('data-preview')) return true;
+      if (this._isInCardPicker()) return true;
+      if (this.offsetWidth && this.offsetWidth < 380) return true;
+    } catch (_e) { /* ignore */ }
+    return false;
   }
 
   _styles() {
@@ -756,6 +784,16 @@ class HaSolarCard extends LitElement {
         .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
         .metric-bottom { padding-left: 12px; }
       }
+
+      /* Preview-only sizing when inside the Lovelace card picker */
+      :host([data-preview]) ha-card { overflow: hidden; }
+      :host([data-preview]) { width: 100%; }
+      :host([data-preview]) .overview-panel { gap: 8px; }
+      :host([data-preview]) .image { width: 20%; max-width: 110px; min-width: 80px; }
+      /* Fallback selectors for card picker host */
+      :host-context(hui-card-picker) ha-card { overflow: hidden; }
+      :host-context(hui-card-picker) .overview-panel { gap: 12px; grid-template-columns: 1fr auto; }
+      :host-context(hui-card-picker) .image { min-width: 0; width: auto; max-width: 90px; }
     `;
   }
 
@@ -848,6 +886,7 @@ class HaSolarCard extends LitElement {
   }
 
   private _renderOverviewPanel(production: DisplayValue, consumption: DisplayValue, image_url: string) {
+    const imgInlineStyle = this._isPreview() ? 'width: 20%; max-width: 140px; min-width: 110px;' : '';
     return html` <div class="overview-panel">
       <div class="content">
         <div class="metric">
@@ -859,7 +898,7 @@ class HaSolarCard extends LitElement {
           <div class="value smaller">${consumption.value} ${consumption.unit}</div>
         </div>
       </div>
-      <div class="image">
+      <div class="image" style="${imgInlineStyle}">
         ${image_url ? html`<img src="${image_url}" alt="Solar panels" loading="lazy" />` : this._defaultPanelsSvgHtml()}
       </div>
     </div>`;
