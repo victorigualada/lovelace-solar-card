@@ -10,7 +10,7 @@ on:
 
 jobs:
   install-dependencies:
-    name: Lint code
+    name: Install dependencies
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
