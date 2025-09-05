@@ -755,7 +755,7 @@ class HaSolarCard extends LitElement {
           <div class="value">${production.value} ${production.unit}</div>
         </div>
         <div class="metric">
-          <div class="label"><ha-icon icon="mdi:power-socket"></ha-icon> ${localize('card.consumption')}</div>
+          <div class="label"><ha-icon icon="mdi:power-socket-eu"></ha-icon> ${localize('card.consumption')}</div>
           <div class="value smaller">${consumption.value} ${consumption.unit}</div>
         </div>
       </div>
