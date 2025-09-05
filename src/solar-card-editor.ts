@@ -51,8 +51,8 @@ export class HaSolarCardEditor extends LitElement {
   _buildSchemas() {
     const cfg = this.config || {};
     const overview = [
-      { name: 'production_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
-      { name: 'current_consumption_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
+      { name: 'production_entity', required: true, selector: { entity: { domain: 'sensor', device_class: 'power' } } },
+      { name: 'current_consumption_entity', required: true, selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       { name: 'image_url', selector: { text: {} } },
     ];
     const today = [

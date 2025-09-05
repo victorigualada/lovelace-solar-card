@@ -59,16 +59,16 @@ You can also use YAML:
 
 ```yaml
 type: custom:solar-card
-# Left panel
-production_entity: sensor.pv_production_now            # W or kW
-current_consumption_entity: sensor.house_consumption    # W or kW
+# Left panel (required)
+production_entity: sensor.pv_production_now            # W or kW (required)
+current_consumption_entity: sensor.house_consumption    # W or kW (required)
 image_url: https://example.com/your/solar.jpg          # optional
 
-# Today (top-right)
-yield_today_entity: sensor.pv_yield_today               # kWh (optional)
-grid_consumption_today_entity: sensor.grid_today        # kWh (optional)
-battery_percentage_entity: sensor.battery_soc           # %
-inverter_state_entity: sensor.inverter_state            # text
+# Today (top-right) — optional; metrics render only when configured or derivable
+yield_today_entity: sensor.pv_yield_today               # kWh (optional; or derive from total_yield)
+grid_consumption_today_entity: sensor.grid_today        # kWh (optional; or derive from total_grid_consumption)
+battery_percentage_entity: sensor.battery_soc           # % (optional)
+inverter_state_entity: sensor.inverter_state            # text (optional)
 
 # Totals (bottom-right)
 total_yield_entity: sensor.pv_total_yield               # kWh
@@ -86,7 +86,8 @@ solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forec
 ```
 
 Notes:
-- If `yield_today_entity` or `grid_consumption_today_entity` are not set (or unavailable), the card will compute today’s value from their respective totals using the history API.
+- The left panel requires both production and current consumption entities.
+- The Today section is optional. Each metric shows only if its entity is configured; for Yield/Grid it can also show if the corresponding total is set (derived via history since midnight).
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
 - The Energy Flow section requires that your Energy dashboard is configured.
 
