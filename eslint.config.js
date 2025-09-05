@@ -1,5 +1,6 @@
 import eslintParser from '@typescript-eslint/parser';
 import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import pluginYaml from "eslint-plugin-yaml"
 
 import { FlatCompat } from "@eslint/eslintrc";
 import path from "path";
@@ -15,6 +16,7 @@ const compat = new FlatCompat({
 
 export default [
   ...compat.extends("prettier"),
+  pluginYaml.configs.recommended,
   {
   languageOptions: {
      parser: eslintParser,
