@@ -84,6 +84,8 @@ class HaSolarCard extends LitElement {
     ha-card {
       padding: 16px;
       --label-color: var(--secondary-text-color);
+      /* Also make the card itself a query container so rules use card width */
+      container-type: inline-size;
     }
 
     .container {
@@ -313,7 +315,7 @@ class HaSolarCard extends LitElement {
     }
 
     /* Stack sections on narrower screens */
-    @media (max-width: 1200px) {
+    @container (max-width: 1200px) {
       .container,
       .container.has-forecast {
         grid-template-columns: 1fr;
@@ -337,7 +339,7 @@ class HaSolarCard extends LitElement {
         max-width: none;
       }
       .image {
-        width: clamp(100px, 28vw, 150px);
+        width: clamp(100px, 28cqi, 150px);
         max-width: 150px;
         justify-self: end;
       }
@@ -352,7 +354,7 @@ class HaSolarCard extends LitElement {
     }
 
     /* Wide screens: left spans two rows; right sections occupy col 2 rows 1/2; forecast spans both rows in last column */
-    @media (min-width: 1201px) {
+    @container (min-width: 1201px) {
       .overview-panel {
         grid-column: 1;
         grid-row: 1 / span 2;
@@ -371,7 +373,7 @@ class HaSolarCard extends LitElement {
       }
     }
 
-    @media (max-width: 900px) {
+    @container (max-width: 900px) {
       .devices-row .badges {
         flex-wrap: wrap;
         justify-content: center;
@@ -379,14 +381,53 @@ class HaSolarCard extends LitElement {
       .devices-row .badge {
         max-width: 40%;
       }
-    }
-
-    @media (max-width: 568px) {
+      /* Tighten big numbers and reduce columns to avoid overlap */
+      .metric .value {
+        font-size: 1.6rem;
+      }
+      .metric .value.smaller {
+        font-size: 1.2rem;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
       .overview-panel {
         grid-template-columns: 1fr auto;
       }
       .image {
-        width: clamp(90px, 32vw, 130px);
+        width: clamp(90px, 26cqi, 130px);
+        max-width: 130px;
+      }
+    }
+
+    @container (max-width: 700px) {
+      /* Stack overview content vertically when very narrow */
+      .overview-panel {
+        grid-template-columns: 1fr;
+      }
+      .overview-panel .content {
+        order: 1;
+      }
+      .overview-panel .image {
+        order: 2;
+        justify-self: start;
+        width: clamp(80px, 40cqi, 120px);
+        max-width: 120px;
+      }
+      .metric .value {
+        font-size: 1.5rem;
+      }
+      .metric .value.smaller {
+        font-size: 1.1rem;
+      }
+    }
+
+    @container (max-width: 568px) {
+      .overview-panel {
+        grid-template-columns: 1fr auto;
+      }
+      .image {
+        width: clamp(90px, 32cqi, 130px);
         max-width: 130px;
       }
       /* Right panel: maximum 2 items per row */
@@ -579,11 +620,6 @@ class HaSolarCard extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // Mark preview when rendered inside card picker or when very narrow
-    try {
-      const inPicker = this._isInCardPicker() || (this.offsetWidth && this.offsetWidth < 380);
-      this.toggleAttribute('data-preview', !!inPicker);
-    } catch (_e) { /* ignore */ }
     if (this._config?.show_top_devices) this._maybeRefreshTopDevices();
   }
 
@@ -597,7 +633,6 @@ class HaSolarCard extends LitElement {
 
   _defaultPanelsSvgHtml() {
     const rows = Array.from({ length: 3 });
-    // Always render a full grid of cells; preview sizing is controlled via CSS only
     const cols = Array.from({ length: 6 });
     // Use `svg` template for nested SVG nodes to ensure correct namespace
     const cells = rows.flatMap((_r, r) =>
@@ -621,179 +656,6 @@ class HaSolarCard extends LitElement {
         </g>
         <rect x="40" y="150" width="160" height="10" rx="5" fill="#8892a0" opacity="0.7" />
       </svg>
-    `;
-  }
-
-  private _isInCardPicker(): boolean {
-    try {
-      // Walk across shadow roots to detect hui-card-picker or hui-card-preview
-      let el: any = this as any;
-      while (el) {
-        if (el.closest && el.closest('hui-card-picker, hui-card-preview')) return true;
-        const rn = el.getRootNode?.();
-        el = rn?.host || null;
-      }
-    } catch (_e) { /* ignore */ }
-    return false;
-  }
-
-  private _isPreview(): boolean {
-    try {
-      if (this.hasAttribute('data-preview')) return true;
-      if (this._isInCardPicker()) return true;
-      if (this.offsetWidth && this.offsetWidth < 380) return true;
-    } catch (_e) { /* ignore */ }
-    return false;
-  }
-
-  _styles() {
-    return `
-      :host { display: block; }
-      ha-card {
-        padding: 16px;
-        --label-color: var(--secondary-text-color);
-      }
-
-      .container { display: grid; grid-template-columns: 1fr 2fr; gap: 0; align-items: stretch; grid-auto-rows: auto; }
-      .container.has-forecast { grid-template-columns: 1fr 2fr auto; }
-
-      /* Overview (content + image) */
-      .overview-panel { display: grid; grid-template-columns: 1.2fr auto; gap: 40px; align-items: center; padding-right: 16px; }
-      /* Metrics sections (separate items) */
-      .today-panel, .totals-panel { border-left: 1px solid var(--divider-color, rgba(0,0,0,0.12)); padding-left: 16px; padding-right: 16px; }
-      .today-panel { padding: 4px 16px 12px; }
-      .totals-panel { padding: 12px 16px 0; }
-      .right-divider { display: none; }
-      .forecast-panel { border-left: 1px solid var(--divider-color, rgba(0,0,0,0.12)); padding-left: 16px; display: grid; align-content: start; align-self: stretch; }
-
-      .content { display: grid; gap: 10px; }
-
-      .metric .label { color: var(--secondary-text-color); font-size: 0.9rem; }
-      /* Left panel labels keep icon inline */
-      .overview-panel .metric .label { display: inline-flex; align-items: center; gap: 6px; }
-      .overview-panel .metric .label ha-icon { color: var(--secondary-text-color); }
-      .overview-panel .metric .value { justify-self: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-      /* Top row icons on the left, spanning two text rows */
-      .metric-top { display: grid; grid-template-columns: 24px 1fr; grid-template-rows: auto auto; column-gap: 8px; }
-      .metric-top > .icon { grid-row: 1 / span 2; align-self: center; color: var(--secondary-text-color); }
-      .metric-top > .label { grid-column: 2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .metric-top > .value { grid-column: 2; white-space: nowrap; }
-
-      .metric-bottom { padding-left: 32px; }
-
-      .metric .value {
-        font-weight: 700;
-        font-size: 2rem;
-        line-height: 1.1;
-      }
-
-      .metric .value.smaller { font-size: 1.4rem; }
-
-      .image {
-        width: 30%;
-        max-width: 180px;
-        min-width: 140px;
-        justify-self: end;
-      }
-
-      .image > img, .image > svg {
-        width: 100%;
-        height: auto;
-        display: block;
-        border-radius: 8px;
-      }
-
-      .energy-section { border-top: 1px solid var(--divider-color, rgba(0,0,0,0.12)); margin-top: 12px; padding-top: 12px; }
-
-      /* Devices row */
-      .devices-row { border-top: 1px solid var(--divider-color, rgba(0,0,0,0.12)); margin-top: 12px; padding-top: 12px; }
-      .devices-row .badges {
-        display: flex;
-        gap: 8px;
-        align-items: stretch;
-        width: 100%;
-        cursor: pointer;
-      }
-      .devices-row .badge {
-        display: grid;
-        grid-template-columns: auto 1fr auto; /* icon | name | value */
-        align-items: center;
-        gap: 8px;
-        background: var(--chip-background-color, rgba(0,0,0,0.03));
-        color: var(--primary-text-color);
-        padding: 6px 10px;
-        border-radius: 16px;
-        border: 1px solid transparent;
-        white-space: nowrap;
-        width: 100%;
-        min-width: 0; /* allow inner ellipsis */
-        overflow: hidden; /* prevent overlap when space is tight */
-        cursor: pointer;
-        transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-      }
-      .devices-row .badge:hover {
-        background: rgba(var(--rgb-primary-color), 0.08);
-        border-color: var(--primary-color);
-      }
-      .devices-row .badge ha-icon { color: var(--secondary-text-color); }
-      .devices-row .badge .name { max-width: 14ch; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-      .devices-row .badge .value { font-weight: 600; justify-self: end; text-align: right; }
-
-      /* Forecast mini panel */
-      .forecast { border: 0; border-radius: 10px; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; max-width: 320px; justify-self: end; }
-      .forecast .title { font-weight: 700; }
-      .forecast .subtle { color: var(--secondary-text-color); font-size: 0.9rem; }
-      .forecast .temp { font-weight: 800; font-size: 1.8rem; }
-      .forecast .icon ha-icon { width: 40px; height: 40px; --mdc-icon-size: 40px; }
-
-      /* Grids for top/bottom sections */
-      .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
-      .metrics-grid .metric { min-width: 0; }
-      .metrics-grid .metric .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .metrics-grid .metric .value { font-size: 1.25rem; }
-
-      /* Stack sections on narrower screens */
-      @media (max-width: 1200px) {
-        .container, .container.has-forecast { grid-template-columns: 1fr; grid-auto-rows: auto; row-gap: 12px; }
-        .overview-panel { padding-right: 0; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
-        .today-panel, .totals-panel, .forecast-panel { border-left: none; padding-left: 0; }
-        .forecast { justify-self: stretch; max-width: none; }
-        .image { width: clamp(100px, 28vw, 150px); max-width: 150px; justify-self: end; }
-        .metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); min-width: 0; }
-        .today-panel .metric, .totals-panel .metric { min-width: 0; }
-      }
-
-      /* Wide screens: left spans two rows; right sections occupy col 2 rows 1/2; forecast spans both rows in last column */
-      @media (min-width: 1201px) {
-        .overview-panel { grid-column: 1; grid-row: 1 / span 2; }
-        .today-panel { grid-column: 2; grid-row: 1; }
-        .totals-panel { grid-column: 2; grid-row: 2; }
-        .container.has-forecast .forecast-panel { grid-column: 3; grid-row: 1 / span 2; }
-      }
-
-      @media (max-width: 900px) {
-        .devices-row .badges { flex-wrap: wrap; justify-content: center;}
-        .devices-row .badge { max-width: 40%; }
-      }
-
-      @media (max-width: 568px) {
-        .overview-panel { grid-template-columns: 1fr auto; }
-        .image { width: clamp(90px, 32vw, 130px); max-width: 130px; }
-        /* Right panel: maximum 2 items per row */
-        .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
-        .metric-bottom { padding-left: 12px; }
-      }
-
-      /* Preview-only sizing when inside the Lovelace card picker */
-      :host([data-preview]) ha-card { overflow: hidden; }
-      :host([data-preview]) { width: 100%; }
-      :host([data-preview]) .overview-panel { gap: 8px; }
-      :host([data-preview]) .image { width: 20%; max-width: 110px; min-width: 80px; }
-      /* Fallback selectors for card picker host */
-      :host-context(hui-card-picker) ha-card { overflow: hidden; }
-      :host-context(hui-card-picker) .overview-panel { gap: 12px; grid-template-columns: 1fr auto; }
-      :host-context(hui-card-picker) .image { min-width: 0; width: auto; max-width: 90px; }
     `;
   }
 
@@ -886,7 +748,6 @@ class HaSolarCard extends LitElement {
   }
 
   private _renderOverviewPanel(production: DisplayValue, consumption: DisplayValue, image_url: string) {
-    const imgInlineStyle = this._isPreview() ? 'width: 20%; max-width: 140px; min-width: 110px;' : '';
     return html` <div class="overview-panel">
       <div class="content">
         <div class="metric">
@@ -898,7 +759,7 @@ class HaSolarCard extends LitElement {
           <div class="value smaller">${consumption.value} ${consumption.unit}</div>
         </div>
       </div>
-      <div class="image" style="${imgInlineStyle}">
+      <div class="image">
         ${image_url ? html`<img src="${image_url}" alt="Solar panels" loading="lazy" />` : this._defaultPanelsSvgHtml()}
       </div>
     </div>`;
@@ -1428,6 +1289,7 @@ class HaSolarCard extends LitElement {
       (el as HassAware).setConfig?.({ type: 'energy-sankey' });
     }
     (el as HassAware).hass = this._hass;
+    el.style.setProperty('--row-size', '6');
     container.innerHTML = '';
     container.appendChild(el);
     this._energyFlowEl = el;
