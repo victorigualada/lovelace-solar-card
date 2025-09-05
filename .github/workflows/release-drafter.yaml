@@ -19,6 +19,7 @@ jobs:
       pull-requests: read
     outputs:
       upload_url: ${{ steps.release_drafter.outputs.upload_url }}
+      release_id: ${{ steps.release_drafter.outputs.id }}
     steps:
       - id: release_drafter
         uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6.1.0
@@ -42,6 +43,26 @@ jobs:
 
       - name: Build project
         run: yarn build
+
+      - name: Remove existing asset if present
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const release_id = Number(`${{ needs.update_release_draft.outputs.release_id }}`);
+            if (!release_id) {
+              core.warning('No release_id from release-drafter; skipping asset cleanup');
+              return;
+            }
+            const { owner, repo } = context.repo;
+            const assets = await github.paginate(github.rest.repos.listReleaseAssets, { owner, repo, release_id, per_page: 3 });
+            const existing = assets.find(a => a.name === 'solar-card.js');
+            if (existing) {
+              core.info(`Deleting existing asset id=${existing.id} name=${existing.name}`);
+              await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: existing.id });
+            } else {
+              core.info('No existing asset named solar-card.js to delete');
+            }
 
       - name: Upload built card to draft release
         uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5 # v1.0.2
