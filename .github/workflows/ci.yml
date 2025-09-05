@@ -48,6 +48,8 @@ jobs:
 
       - name: yaml-lint
         uses: ibiqlik/action-yamllint@b74a2626a991d676b6ec243a6458ff86cccf2d2d
+        with:
+          file_or_dir: '.'
 
   build:
     name: Test build
