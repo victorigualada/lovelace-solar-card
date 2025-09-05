@@ -46,6 +46,9 @@ jobs:
       - name: Lint code
         run: yarn lint
 
+      - name: yaml-lint
+        uses: ibiqlik/action-yamllint@b74a2626a991d676b6ec243a6458ff86cccf2d2d
+
   build:
     name: Test build
     runs-on: ubuntu-latest
