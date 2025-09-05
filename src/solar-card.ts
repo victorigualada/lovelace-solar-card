@@ -378,29 +378,58 @@ class HaSolarCard extends LitElement {
         flex-wrap: wrap;
         justify-content: center;
       }
-      .devices-row .badge { max-width: 40%; }
+      .devices-row .badge {
+        max-width: 40%;
+      }
       /* Tighten big numbers and reduce columns to avoid overlap */
-      .metric .value { font-size: 1.6rem; }
-      .metric .value.smaller { font-size: 1.2rem; }
-      .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .overview-panel { grid-template-columns: 1fr auto; }
-      .image { width: clamp(90px, 26cqi, 130px); max-width: 130px; }
+      .metric .value {
+        font-size: 1.6rem;
+      }
+      .metric .value.smaller {
+        font-size: 1.2rem;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .overview-panel {
+        grid-template-columns: 1fr auto;
+      }
+      .image {
+        width: clamp(90px, 26cqi, 130px);
+        max-width: 130px;
+      }
     }
 
     @container (max-width: 700px) {
       /* Stack overview content vertically when very narrow */
-      .overview-panel { grid-template-columns: 1fr; }
-      .overview-panel .content { order: 1; }
-      .overview-panel .image { order: 2; justify-self: start; width: clamp(80px, 40cqi, 120px); max-width: 120px; }
-      .metric .value { font-size: 1.5rem; }
-      .metric .value.smaller { font-size: 1.1rem; }
+      .overview-panel {
+        grid-template-columns: 1fr;
+      }
+      .overview-panel .content {
+        order: 1;
+      }
+      .overview-panel .image {
+        order: 2;
+        justify-self: start;
+        width: clamp(80px, 40cqi, 120px);
+        max-width: 120px;
+      }
+      .metric .value {
+        font-size: 1.5rem;
+      }
+      .metric .value.smaller {
+        font-size: 1.1rem;
+      }
     }
 
     @container (max-width: 568px) {
       .overview-panel {
         grid-template-columns: 1fr auto;
       }
-      .image { width: clamp(90px, 32cqi, 130px); max-width: 130px; }
+      .image {
+        width: clamp(90px, 32cqi, 130px);
+        max-width: 130px;
+      }
       /* Right panel: maximum 2 items per row */
       .metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -441,7 +470,6 @@ class HaSolarCard extends LitElement {
   private _statToDeviceId?: Record<string, string> | null;
   private _deviceEntitiesMap?: Record<string, string[]> | null;
   private _lastLang?: string | null;
-  private _ro: ResizeObserver | null;
 
   constructor() {
     super();
@@ -463,7 +491,6 @@ class HaSolarCard extends LitElement {
     this._deviceIconById = null; // device_id -> icon (from device registry)
     this._entityRegistryByEntityId = null; // entity_id -> entity_registry entry
     this._lastLang = null;
-    this._ro = null;
   }
 
   setConfig(config: SolarCardConfig) {
@@ -602,12 +629,6 @@ class HaSolarCard extends LitElement {
       clearTimeout(this._devicesTimer);
       this._devicesTimer = null;
     }
-    if (this._ro) {
-      try {
-        this._ro.disconnect();
-      } catch (_e) { /* ignore */ }
-      this._ro = null;
-    }
   }
 
   _defaultPanelsSvgHtml() {
@@ -636,31 +657,6 @@ class HaSolarCard extends LitElement {
         <rect x="40" y="150" width="160" height="10" rx="5" fill="#8892a0" opacity="0.7" />
       </svg>
     `;
-  }
-
-  // Observe the card width and toggle host attributes for CSS fallback breakpoints
-  private _ensureResizeObserver() {
-    if (this._ro) return;
-    const card = this.shadowRoot?.querySelector('ha-card') as HTMLElement | null;
-    if (!card) return;
-    const apply = (w: number) => {
-      const set = (attr: string, on: boolean) => {
-        if (on) this.setAttribute(attr, '');
-        else this.removeAttribute(attr);
-      };
-      set('data-lt-1200', w <= 1200);
-      set('data-lt-900', w <= 900);
-      set('data-lt-700', w <= 700);
-      set('data-lt-568', w <= 568);
-    };
-    this._ro = new ResizeObserver((entries) => {
-      const cr = entries[0]?.contentRect;
-      if (!cr) return;
-      apply(cr.width);
-    });
-    this._ro.observe(card);
-    // Initialize immediately
-    apply(card.clientWidth || this.clientWidth || 0);
   }
 
   render() {
@@ -866,7 +862,6 @@ class HaSolarCard extends LitElement {
     if (this._config?.show_energy_flow) {
       this._renderEnergyFlow();
     }
-    this._ensureResizeObserver();
   }
 
   _onDevicesClick = (ev: Event) => {
