@@ -213,6 +213,19 @@ class HaSolarCard extends LitElement {
       margin-top: 12px;
       padding-top: 12px;
     }
+    .grid-kwh-section {
+      border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      margin-top: 12px;
+      padding-top: 8px;
+    }
+    .graphs-section {
+      border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      margin-top: 12px;
+      padding-top: 8px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
 
     /* Devices row */
     .devices-row {
@@ -449,6 +462,9 @@ class HaSolarCard extends LitElement {
     inflight: boolean;
   };
   private _energyFlowEl: HTMLElement | null;
+  private _gridKwhEl: HTMLElement | null; // legacy single graph
+  private _trendGraphEls: HTMLElement[] | null;
+  private _trendGraphsSig: string | null;
   private _deviceBadges: DeviceBadgeItem[];
   private _devicesRefreshing: boolean;
   private _devicesLastFetch: number;
@@ -472,6 +488,9 @@ class HaSolarCard extends LitElement {
     this._gridTodayCache = { key: null, dateKey: null, result: null, inflight: false };
     this._yieldTodayCache = { key: null, dateKey: null, result: null, inflight: false };
     this._energyFlowEl = null;
+    this._gridKwhEl = null;
+    this._trendGraphEls = null;
+    this._trendGraphsSig = null;
     this._deviceBadges = [];
     this._devicesRefreshing = false;
     this._devicesLastFetch = 0;
@@ -498,6 +517,9 @@ class HaSolarCard extends LitElement {
       show_solar_forecast: config.show_solar_forecast ?? false,
       weather_entity: config.weather_entity ?? '',
       solar_forecast_today_entity: config.solar_forecast_today_entity ?? '',
+      trend_graph_entities: Array.isArray((config as any).trend_graph_entities)
+        ? ((config as any).trend_graph_entities as string[])
+        : [],
       // Right section - top (today)
       yield_today_entity: config.yield_today_entity ?? '',
       grid_consumption_today_entity: config.grid_consumption_today_entity ?? '',
@@ -534,6 +556,7 @@ class HaSolarCard extends LitElement {
       show_solar_forecast: false,
       weather_entity: '',
       solar_forecast_today_entity: '',
+      trend_graph_entities: [],
       // Right section - top (today)
       yield_today_entity: '',
       grid_consumption_today_entity: '',
@@ -556,6 +579,16 @@ class HaSolarCard extends LitElement {
       } catch (_e) {
         /* ignore */
       }
+    }
+    if (Array.isArray(this._trendGraphEls)) {
+      for (const el of this._trendGraphEls) {
+        try { (el as HassAware).hass = hass; } catch (_e) { /* ignore */ }
+      }
+    }
+    if (this._gridKwhEl) {
+      try {
+        (this._gridKwhEl as HassAware).hass = hass;
+      } catch (_e) { /* ignore */ }
     }
 
     // No localStorage writes: localize() reads HA language directly now.
@@ -587,6 +620,9 @@ class HaSolarCard extends LitElement {
     add(cfg.inverter_mode_entity);
     add(cfg.weather_entity);
     add(cfg.solar_forecast_today_entity);
+    if (Array.isArray((cfg as any).trend_graph_entities)) {
+      for (const e of (cfg as any).trend_graph_entities) add(e);
+    }
     if (cfg.show_top_devices && this._devicePowerMap) {
       for (const statId of Object.keys(this._devicePowerMap)) {
         const ents = this._devicePowerMap[statId] || [];
@@ -665,6 +701,27 @@ class HaSolarCard extends LitElement {
     const forecast = this._computeForecastValues(cfg);
     const devicesList = cfg.show_top_devices ? this._computeTopDevicesLive(cfg.top_devices_max || 4) : [];
 
+    // Compose tile configs to render (full tile passthrough + trend graphs + legacy single)
+    const tiles: any[] = [];
+    const rawTiles = Array.isArray((cfg as any).feature_tiles) ? ((cfg as any).feature_tiles as any[]) : [];
+    for (const t of rawTiles) {
+      if (t && typeof t === 'object') tiles.push({ type: 'tile', ...t });
+    }
+    const graphEntities: string[] = [];
+    const list = Array.isArray((cfg as any).trend_graph_entities)
+      ? (cfg as any).trend_graph_entities.filter((s: string) => typeof s === 'string' && s.includes('.'))
+      : [];
+    graphEntities.push(...list);
+    const defHours0 = Number((cfg as any)?.trend_graph_hours_to_show) || 24;
+    const defDetail0 = Number((cfg as any)?.trend_graph_detail) || 2;
+    for (const entityId of graphEntities) {
+      tiles.push({
+        type: 'tile',
+        entity: entityId,
+        features: [ { type: 'trend-graph', hours_to_show: defHours0, detail: defDetail0 } ],
+      });
+    }
+
     return html`
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
@@ -674,6 +731,9 @@ class HaSolarCard extends LitElement {
         </div>
 
         ${cfg.show_top_devices && devicesList.length ? this._renderDevicesRow(devicesList) : nothing}
+        ${tiles.length
+          ? html`<div id="graphs-section" class="graphs-section"></div>`
+          : nothing}
         ${cfg.show_energy_flow
           ? html`<div id="energy-section" class="energy-section"><div id="energy-flow"></div></div>`
           : nothing}
@@ -881,6 +941,19 @@ class HaSolarCard extends LitElement {
     if (this._config?.show_energy_flow) {
       this._renderEnergyFlow();
     }
+    const cfg = this._config;
+    const tiles: any[] = [];
+    const rawTiles = Array.isArray((cfg as any)?.feature_tiles) ? ((cfg as any).feature_tiles as any[]) : [];
+    for (const t of rawTiles) {
+      if (t && typeof t === 'object') tiles.push({ type: 'tile', ...t });
+    }
+    const ents = Array.isArray((cfg as any)?.trend_graph_entities) ? ((cfg as any).trend_graph_entities as string[]) : [];
+    const merged = new Set<string>(ents);
+    const defHours = Number((cfg as any)?.trend_graph_hours_to_show) || 24;
+    for (const entityId of Array.from(merged)) {
+      tiles.push({ type: 'tile', entity: entityId, features: [ { type: 'trend-graph', hours_to_show: defHours } ] });
+    }
+    if (tiles.length) this._renderTrendGraphs(tiles);
   }
 
   _onDevicesClick = (ev: Event) => {
@@ -1312,6 +1385,86 @@ class HaSolarCard extends LitElement {
     container.innerHTML = '';
     container.appendChild(el);
     this._energyFlowEl = el;
+  }
+
+  async _renderTrendGraphs(tileConfigs: any[]) {
+    // Ensure registries are available so we can resolve device names for stripping
+    await this._ensureRegistriesForNames();
+    const container = this.shadowRoot?.getElementById('graphs-section') as HTMLElement | null;
+    if (!container || !tileConfigs?.length) return;
+    // If the count matches, just update hass to avoid rebuilding
+    if (Array.isArray(this._trendGraphEls) && this._trendGraphEls.length === tileConfigs.length) {
+      for (const el of this._trendGraphEls) {
+        try { (el as HassAware).hass = this._hass; } catch (_e) { /* ignore */ }
+      }
+      return;
+    }
+    container.innerHTML = '';
+    this._trendGraphEls = [];
+    for (const cfg of tileConfigs) {
+      if (!cfg) continue;
+      let el: HTMLElement | null = null;
+      const ent = (cfg as any).entity as string | undefined;
+      // Prefer the entity's friendly name as the tile title, unless user overrides
+      let friendly = ent && this._hass?.states?.[ent]?.attributes?.friendly_name;
+      const tileConfig = { type: 'tile', ...cfg } as any;
+      if (!('name' in tileConfig) && friendly) tileConfig.name = this._stripDeviceFromName(String(friendly), ent);
+      try {
+        const helpers = await window.loadCardHelpers?.();
+        if (helpers?.createCardElement) {
+          el = helpers.createCardElement(tileConfig);
+        }
+      } catch (_e) { /* ignore */ }
+      if (!el) {
+        el = document.createElement('hui-tile-card');
+        (el as HassAware).setConfig?.(tileConfig);
+      }
+      (el as HassAware).hass = this._hass;
+      container.appendChild(el);
+      this._trendGraphEls.push(el);
+    }
+  }
+
+  private async _ensureRegistriesForNames() {
+    if (!this._hass) return;
+    try {
+      if (!this._entityRegistry) {
+        this._entityRegistry = await this._hass!.callWS<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' });
+      }
+      if (!this._deviceRegistry) {
+        try {
+          this._deviceRegistry = await this._hass!.callWS<DeviceRegistryEntry[]>({ type: 'config/device_registry/list' });
+        } catch (_e) {
+          this._deviceRegistry = [];
+        }
+      }
+    } catch (_e) {
+      // ignore; name stripping will just use fallbacks
+    }
+  }
+
+  private _stripDeviceFromName(name: string, entityId?: string): string {
+    const original = (name || '').trim();
+    const dev = this._deviceNameForEntity(entityId || '') || '';
+    if (!dev) return original;
+    const esc = dev.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    let out = original.replace(new RegExp(esc, 'i'), '').trim();
+    // remove leftover leading separators
+    out = out.replace(/^[\s\-—–:|•·.]+/, '').trim();
+    return out || original;
+  }
+
+  private _deviceNameForEntity(entityId: string): string | null {
+    try {
+      const reg = this._entityRegistry as any[] | null;
+      const dreg = this._deviceRegistry as any[] | null;
+      if (!entityId || !reg || !dreg) return null;
+      const entry = reg.find((e: any) => e?.entity_id === entityId);
+      const dev = entry?.device_id ? dreg.find((d: any) => d?.id === entry.device_id) : null;
+      return dev?.name || null;
+    } catch (_e) {
+      return null;
+    }
   }
 
   // Compute today's delta from a cumulative/total sensor using HA history API

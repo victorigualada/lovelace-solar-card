@@ -67,25 +67,37 @@ export class HaSolarCardEditor extends LitElement {
       { name: 'battery_capacity_entity', selector: { entity: { domain: 'sensor' } } },
       { name: 'inverter_mode_entity', selector: { entity: { domain: 'sensor' } } },
     ];
-    const options = [
-      { name: 'show_energy_flow', selector: { boolean: {} } },
-      { name: 'show_top_devices', selector: { boolean: {} } },
+    // Weather forecast section
+    const weather = [
+      { name: 'show_solar_forecast', selector: { boolean: {} } },
     ];
-    if (cfg.show_top_devices) {
-      // @ts-expect-error dynamic schema
-      options.push({ name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } });
-    }
-    options.push({ name: 'show_solar_forecast', selector: { boolean: {} } });
     if (cfg.show_solar_forecast) {
       // @ts-expect-error dynamic schema
-      options.push({ name: 'weather_entity', selector: { entity: { domain: 'weather' } } });
-      options.push({
+      weather.push({ name: 'weather_entity', selector: { entity: { domain: 'weather' } } });
+      weather.push({
         name: 'solar_forecast_today_entity',
         // @ts-expect-error dynamic schema
         selector: { entity: { domain: 'sensor', device_class: 'energy' } },
       });
     }
-    return { overview, today, totals, options };
+    // Top consuming devices section
+    const topDevices = [
+      { name: 'show_top_devices', selector: { boolean: {} } },
+    ];
+    if (cfg.show_top_devices) {
+      // @ts-expect-error dynamic schema
+      topDevices.push({ name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } });
+    }
+    // Trend graphs section (includes legacy single entity)
+    const trend = [
+      { name: 'trend_graph_entities', selector: { entity: { multiple: true, domain: 'sensor' } } },
+      { name: 'trend_graph_hours_to_show', selector: { number: { min: 1, max: 168, mode: 'box' } } },
+];
+    // Sankey section
+    const sankey = [
+      { name: 'show_energy_flow', selector: { boolean: {} } },
+    ];
+    return { overview, today, totals, weather, topDevices, trend, sankey };
   }
 
   render() {
@@ -126,11 +138,44 @@ export class HaSolarCardEditor extends LitElement {
           ></ha-form>
         </div>
         <div class="section">
-          <h3>Options</h3>
+          <h3>Weather forecast</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
-            .schema=${schemas.options}
+            .schema=${schemas.weather}
+            .computeLabel=${this._computeLabel}
+            .computeHelper=${this._computeHelper}
+            @value-changed=${this._valueChanged}
+          ></ha-form>
+        </div>
+        <div class="section">
+          <h3>Top consuming devices</h3>
+          <ha-form
+            .hass=${this._hass}
+            .data=${this.config}
+            .schema=${schemas.topDevices}
+            .computeLabel=${this._computeLabel}
+            .computeHelper=${this._computeHelper}
+            @value-changed=${this._valueChanged}
+          ></ha-form>
+        </div>
+        <div class="section">
+          <h3>Trend graphs</h3>
+          <ha-form
+            .hass=${this._hass}
+            .data=${this.config}
+            .schema=${schemas.trend}
+            .computeLabel=${this._computeLabel}
+            .computeHelper=${this._computeHelper}
+            @value-changed=${this._valueChanged}
+          ></ha-form>
+        </div>
+        <div class="section">
+          <h3>Sankey flow graph</h3>
+          <ha-form
+            .hass=${this._hass}
+            .data=${this.config}
+            .schema=${schemas.sankey}
             .computeLabel=${this._computeLabel}
             .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
@@ -172,6 +217,8 @@ export class HaSolarCardEditor extends LitElement {
       battery_capacity_entity: 'Battery capacity entity (kWh)',
       inverter_mode_entity: 'Inverter mode entity (text sensor)',
       image_url: 'Image URL (optional)',
+      trend_graph_entities: 'Trend graph entities (multiple sensors)',
+      trend_graph_hours_to_show: 'Trend graph hours (default 24)',
     } as Record<string, string>;
     return labelMap[schema.name] || schema.name;
   };
@@ -188,6 +235,9 @@ export class HaSolarCardEditor extends LitElement {
       show_solar_forecast: 'Shows a compact forecast panel aligned to the right.',
       weather_entity: 'If set, shows temperature and condition for today.',
       solar_forecast_today_entity: "If set and no weather entity, shows today's expected solar production.",
+      trend_graph_entities:
+        'Optional. Select one or more sensor entities to render as individual trend graphs (Tile features).',
+      trend_graph_hours_to_show: 'Optional. Applies to all auto-generated trend graphs.',
     } as Record<string, string>;
     return helperMap[schema.name];
   };
