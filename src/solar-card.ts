@@ -298,7 +298,7 @@ class HaSolarCard extends LitElement {
     /* Grids for top/bottom sections */
     .metrics-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr));
       gap: 12px;
       align-items: start;
     }
@@ -343,10 +343,7 @@ class HaSolarCard extends LitElement {
         max-width: 150px;
         justify-self: end;
       }
-      .metrics-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        min-width: 0;
-      }
+      .metrics-grid { grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr)); min-width: 0; }
       .today-panel .metric,
       .totals-panel .metric {
         min-width: 0;
@@ -388,9 +385,7 @@ class HaSolarCard extends LitElement {
       .metric .value.smaller {
         font-size: 1.2rem;
       }
-      .metrics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      .metrics-grid { grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr)); }
       .overview-panel {
         grid-template-columns: 1fr auto;
       }
@@ -430,11 +425,8 @@ class HaSolarCard extends LitElement {
         width: clamp(90px, 32cqi, 130px);
         max-width: 130px;
       }
-      /* Right panel: maximum 2 items per row */
-      .metrics-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        min-width: 0;
-      }
+      /* Right panel: clamp to max 2 columns */
+      .metrics-grid { grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr)); min-width: 0; }
       .metric-bottom {
         padding-left: 12px;
       }
@@ -494,7 +486,7 @@ class HaSolarCard extends LitElement {
   }
 
   setConfig(config: SolarCardConfig) {
-    this._config = {
+    const merged = {
       // Backward compat: accept old `yield_today_entity` as production
       production_entity: config.production_entity ?? config.yield_today_entity ?? '',
       current_consumption_entity: config.current_consumption_entity ?? '',
@@ -518,6 +510,11 @@ class HaSolarCard extends LitElement {
       inverter_mode_entity: config.inverter_mode_entity ?? '',
       ...config,
     };
+    // Require core overview fields
+    if (!merged.production_entity || !merged.current_consumption_entity) {
+      throw new Error('Solar Card: production_entity and current_consumption_entity are required.');
+    }
+    this._config = merged;
     this.requestUpdate();
   }
 
@@ -672,7 +669,7 @@ class HaSolarCard extends LitElement {
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
           ${this._renderOverviewPanel(overview.production, overview.consumption, overview.image_url)}
-          ${this._renderTodayPanel(today)} ${this._renderTotalsPanel(totals)}
+          ${this._renderTodayPanel(cfg, today)} ${this._renderTotalsPanel(cfg, totals)}
           ${cfg.show_solar_forecast ? this._renderForecastPanel(forecast) : nothing}
         </div>
 
@@ -765,60 +762,82 @@ class HaSolarCard extends LitElement {
     </div>`;
   }
 
-  private _renderTodayPanel(today: {
+  private _renderTodayPanel(cfg: SolarCardConfig, today: {
     yieldToday: DisplayValue;
     gridToday: DisplayValue;
     batteryPct: DisplayValue;
     inverterState: DisplayValue;
   }) {
-    return html` <div class="today-panel metrics-grid">
-      <div class="metric metric-top">
+    const showYield = !!(cfg.yield_today_entity || cfg.total_yield_entity);
+    const showGrid = !!(cfg.grid_consumption_today_entity || cfg.total_grid_consumption_entity);
+    const showBattery = !!cfg.battery_percentage_entity;
+    const showInverter = !!cfg.inverter_state_entity;
+    const items: unknown[] = [];
+    if (showYield) {
+      items.push(html`<div class="metric metric-top">
         <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
         <div class="label">${localize('card.yield_today')}</div>
         <div class="value smaller">${today.yieldToday.value} ${today.yieldToday.unit}</div>
-      </div>
-      <div class="metric metric-top">
+      </div>`);
+    }
+    if (showGrid) {
+      items.push(html`<div class="metric metric-top">
         <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
         <div class="label">${localize('card.grid_today')}</div>
         <div class="value smaller">${today.gridToday.value} ${today.gridToday.unit}</div>
-      </div>
-      <div class="metric metric-top">
+      </div>`);
+    }
+    if (showBattery) {
+      items.push(html`<div class="metric metric-top">
         <ha-icon class="icon" icon="mdi:battery"></ha-icon>
         <div class="label">${localize('card.battery')}</div>
         <div class="value smaller">${today.batteryPct.value} ${today.batteryPct.unit || '%'}</div>
-      </div>
-      <div class="metric metric-top">
+      </div>`);
+    }
+    if (showInverter) {
+      items.push(html`<div class="metric metric-top">
         <ha-icon class="icon" icon="mdi:power"></ha-icon>
         <div class="label">${localize('card.inverter_state')}</div>
         <div class="value smaller">${today.inverterState.value}</div>
-      </div>
-    </div>`;
+      </div>`);
+    }
+    if (!items.length) return nothing;
+    return html` <div class="today-panel metrics-grid" style="--metrics-cols: ${items.length}">${items}</div>`;
   }
 
-  private _renderTotalsPanel(totals: {
+  private _renderTotalsPanel(cfg: SolarCardConfig, totals: {
     totalYield: DisplayValue;
     totalGrid: DisplayValue;
     batteryCapacity: DisplayValue;
     inverterModeDisplay: DisplayValue;
   }) {
-    return html` <div class="totals-panel metrics-grid">
-      <div class="metric metric-bottom">
+    const items: unknown[] = [];
+    if (cfg.total_yield_entity) {
+      items.push(html`<div class="metric metric-bottom">
         <div class="label">${localize('card.total_yield')}</div>
         <div class="value smaller">${totals.totalYield.value} ${totals.totalYield.unit}</div>
-      </div>
-      <div class="metric metric-bottom">
+      </div>`);
+    }
+    if (cfg.total_grid_consumption_entity) {
+      items.push(html`<div class="metric metric-bottom">
         <div class="label">${localize('card.grid_consumption')}</div>
         <div class="value smaller">${totals.totalGrid.value} ${totals.totalGrid.unit}</div>
-      </div>
-      <div class="metric metric-bottom">
+      </div>`);
+    }
+    if (cfg.battery_capacity_entity) {
+      items.push(html`<div class="metric metric-bottom">
         <div class="label">${localize('card.battery_capacity')}</div>
         <div class="value smaller">${totals.batteryCapacity.value} ${totals.batteryCapacity.unit}</div>
-      </div>
-      <div class="metric metric-bottom">
+      </div>`);
+    }
+    if (cfg.inverter_mode_entity) {
+      items.push(html`<div class="metric metric-bottom">
         <div class="label">${localize('card.inverter_mode')}</div>
         <div class="value smaller">${totals.inverterModeDisplay.value}</div>
-      </div>
-    </div>`;
+      </div>`);
+    }
+    if (!items.length) return nothing;
+    return html` <div class="totals-panel metrics-grid" style="--metrics-cols: ${items.length}">${items}</div>`;
   }
 
   private _renderForecastPanel(forecast: {
