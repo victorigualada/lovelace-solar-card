@@ -1,0 +1,17 @@
+{
+  "card": {
+    "production": "Productie",
+    "consumption": "Verbruik",
+    "yield_today": "Opbrengst vandaag",
+    "grid_today": "Net vandaag",
+    "battery": "Batterij",
+    "inverter_state": "Status omvormer",
+    "total_yield": "Totale opbrengst",
+    "grid_consumption": "Netverbruik",
+    "battery_capacity": "Batterijcapaciteit",
+    "inverter_mode": "Omvormermodus",
+    "weather_today": "Weer vandaag",
+    "solar_forecast": "Zonneprognose",
+    "expected_forecast": "Verwachte prognose"
+  }
+}
