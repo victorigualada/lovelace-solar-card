@@ -25,9 +25,7 @@ jobs:
         uses: release-drafter/release-drafter@b1476f6e6eb133afa41ed8589daba6dc69b4d3f5 # v6.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
 
-  
   upload-asset:
     name: Test build
     runs-on: ubuntu-latest
@@ -37,7 +35,7 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      
+
       - name: Install dependencies
         run: yarn install --immutable
 
@@ -73,5 +71,3 @@ jobs:
           asset_path: dist/solar-card.js
           asset_name: solar-card.js
           asset_content_type: application/javascript
-
-  

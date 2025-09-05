@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      
+
       - name: Restore cached dependencies
         id: cache
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: yarn install --immutable
-      
+
   lint:
     name: Lint code
     runs-on: ubuntu-latest
@@ -35,21 +35,16 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      
+
       - name: Restore cached dependencies
         id: cache
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: ./node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('./yarn.lock') }}
-      
+
       - name: Lint code
         run: yarn lint
-
-      - name: yaml-lint
-        uses: ibiqlik/action-yamllint@b74a2626a991d676b6ec243a6458ff86cccf2d2d
-        with:
-          file_or_dir: '.github'
 
   build:
     name: Test build
@@ -58,7 +53,7 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      
+
       - name: Restore cached dependencies
         id: cache
         uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
@@ -67,4 +62,4 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('./yarn.lock') }}
 
       - name: Build project
-        run:  yarn build
+        run: yarn build

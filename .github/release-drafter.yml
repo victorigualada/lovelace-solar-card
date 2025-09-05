@@ -1,7 +1,8 @@
 name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
 exclude-labels:
-  - 'skip-changelog'
+  - 'configuration'
+  - 'tooling'
 version-resolver:
   major:
     labels:
@@ -22,7 +23,7 @@ version-resolver:
 
 categories:
   - title: '🚀 Features'
-    labels: 
+    labels:
       - 'feature'
       - 'enhancement'
 
@@ -39,14 +40,10 @@ categories:
   - title: '🌐 Translations'
     labels:
       - 'translation'
-      
+
   - title: ':arrow_up: Dependencies'
     label: 'dependencies'
     collapse-after: 1
-
-exclude-labels:
-  - 'configuration'
-  - 'tooling'
 
 change-template: '- [#$NUMBER] $TITLE @$AUTHOR'
 sort-direction: ascending
