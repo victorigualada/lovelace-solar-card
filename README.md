@@ -26,15 +26,8 @@
 
 ### HACS (Custom Repository)
 
-1. In HACS → Frontend → Three dots → Custom repositories
-2. Add this repo URL as type “Lovelace”
-3. Install “Solar Energy Card”
-4. Add the resource:
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=victorigualada&repository=lovelace-solar-card&category=plugin)
 
-```yaml
-url: /hacsfiles/lovelace-solar-card/solar-card.js
-type: module
-```
 
 ### Manual
 
