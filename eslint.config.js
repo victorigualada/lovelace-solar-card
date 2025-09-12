@@ -1,6 +1,6 @@
 import eslintParser from '@typescript-eslint/parser';
 import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
-import pluginYaml from "eslint-plugin-yaml"
+import eslintPluginYml from 'eslint-plugin-yml'
 
 import { FlatCompat } from "@eslint/eslintrc";
 import path from "path";
@@ -15,19 +15,28 @@ const compat = new FlatCompat({
 });
 
 export default [
-  ...compat.extends("prettier"),
-  pluginYaml.configs.recommended,
+  ...eslintPluginYml.configs['flat/recommended'],
   {
-  languageOptions: {
-     parser: eslintParser,
-     parserOptions: {
-       project: 'tsconfig.json',
-       sourceType: 'module',
+    files: ['**/*.{ts,js}'],
+    languageOptions: {
+      parser: eslintParser,
+      parserOptions: {
+        project: ['./tsconfig.json'],
+        tsconfigRootDir: __dirname,
+        sourceType: 'module',
+      },
+    },
+    plugins: { '@typescript-eslint': typescriptEslintPlugin },
+    rules: {
+      // your TS rules…
     },
   },
-  plugins: {
-    '@typescript-eslint': typescriptEslintPlugin, 
+    {
+    files: ['**/*.{yml,yaml}'],
+    rules: {
+      'yml/no-empty-mapping-value': 'off',
+    },
   },
 
-  rules: {},
-}];
+  ...compat.extends("prettier")
+];
