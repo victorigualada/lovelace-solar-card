@@ -12,6 +12,7 @@
     "solar",
     "energy"
   ],
+  "type": "module",
   "module": "solar-card.js",
   "repository": "https://github.com/victorigualada/lovelace-solar-card",
   "author": "victorigualada",
@@ -35,7 +36,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
-    "eslint-plugin-yaml": "^1.1.2",
+    "eslint-plugin-yml": "^1.18.0",
     "prettier": "3.6.2",
     "rollup": "4.50.0",
     "rollup-plugin-babel": "4.4.0",
@@ -43,7 +44,8 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-serve": "3.0.0",
     "rollup-plugin-terser": "7.0.2",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "yaml-eslint-parser": "^1.3.0"
   },
   "resolutions": {
     "lit": "3.1.3",
@@ -54,7 +56,7 @@
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run rollup",
-    "lint": "eslint src --ext .ts",
+    "lint": "eslint src .github --ext .js,.ts,.yaml,.yml",
     "lint:fix": "eslint src --ext .ts --fix && prettier --write \"src/**/*.{ts,json}\" \"**/*.md\" \"**/*.{yaml,yml}\"",
     "rollup": "rollup -c"
   }
