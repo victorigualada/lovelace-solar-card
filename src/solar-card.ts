@@ -356,7 +356,10 @@ class HaSolarCard extends LitElement {
         max-width: 150px;
         justify-self: end;
       }
-      .metrics-grid { grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr)); min-width: 0; }
+      .metrics-grid {
+        grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr));
+        min-width: 0;
+      }
       .today-panel .metric,
       .totals-panel .metric {
         min-width: 0;
@@ -398,7 +401,9 @@ class HaSolarCard extends LitElement {
       .metric .value.smaller {
         font-size: 1.2rem;
       }
-      .metrics-grid { grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr)); }
+      .metrics-grid {
+        grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr));
+      }
       .overview-panel {
         grid-template-columns: 1fr auto;
       }
@@ -439,7 +444,10 @@ class HaSolarCard extends LitElement {
         max-width: 130px;
       }
       /* Right panel: clamp to max 2 columns */
-      .metrics-grid { grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr)); min-width: 0; }
+      .metrics-grid {
+        grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr));
+        min-width: 0;
+      }
       .metric-bottom {
         padding-left: 12px;
       }
@@ -822,79 +830,101 @@ class HaSolarCard extends LitElement {
     </div>`;
   }
 
-  private _renderTodayPanel(cfg: SolarCardConfig, today: {
-    yieldToday: DisplayValue;
-    gridToday: DisplayValue;
-    batteryPct: DisplayValue;
-    inverterState: DisplayValue;
-  }) {
+  private _renderTodayPanel(
+    cfg: SolarCardConfig,
+    today: {
+      yieldToday: DisplayValue;
+      gridToday: DisplayValue;
+      batteryPct: DisplayValue;
+      inverterState: DisplayValue;
+    },
+  ) {
     const showYield = !!(cfg.yield_today_entity || cfg.total_yield_entity);
     const showGrid = !!(cfg.grid_consumption_today_entity || cfg.total_grid_consumption_entity);
     const showBattery = !!cfg.battery_percentage_entity;
     const showInverter = !!cfg.inverter_state_entity;
     const items: unknown[] = [];
     if (showYield) {
-      items.push(html`<div class="metric metric-top">
-        <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
-        <div class="label">${localize('card.yield_today')}</div>
-        <div class="value smaller">${today.yieldToday.value} ${today.yieldToday.unit}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-top">
+          <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
+          <div class="label">${localize('card.yield_today')}</div>
+          <div class="value smaller">${today.yieldToday.value} ${today.yieldToday.unit}</div>
+        </div>`,
+      );
     }
     if (showGrid) {
-      items.push(html`<div class="metric metric-top">
-        <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
-        <div class="label">${localize('card.grid_today')}</div>
-        <div class="value smaller">${today.gridToday.value} ${today.gridToday.unit}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-top">
+          <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
+          <div class="label">${localize('card.grid_today')}</div>
+          <div class="value smaller">${today.gridToday.value} ${today.gridToday.unit}</div>
+        </div>`,
+      );
     }
     if (showBattery) {
-      items.push(html`<div class="metric metric-top">
-        <ha-icon class="icon" icon="mdi:battery"></ha-icon>
-        <div class="label">${localize('card.battery')}</div>
-        <div class="value smaller">${today.batteryPct.value} ${today.batteryPct.unit || '%'}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-top">
+          <ha-icon class="icon" icon="mdi:battery"></ha-icon>
+          <div class="label">${localize('card.battery')}</div>
+          <div class="value smaller">${today.batteryPct.value} ${today.batteryPct.unit || '%'}</div>
+        </div>`,
+      );
     }
     if (showInverter) {
-      items.push(html`<div class="metric metric-top">
-        <ha-icon class="icon" icon="mdi:power"></ha-icon>
-        <div class="label">${localize('card.inverter_state')}</div>
-        <div class="value smaller">${today.inverterState.value}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-top">
+          <ha-icon class="icon" icon="mdi:power"></ha-icon>
+          <div class="label">${localize('card.inverter_state')}</div>
+          <div class="value smaller">${today.inverterState.value}</div>
+        </div>`,
+      );
     }
     if (!items.length) return nothing;
     return html` <div class="today-panel metrics-grid" style="--metrics-cols: ${items.length}">${items}</div>`;
   }
 
-  private _renderTotalsPanel(cfg: SolarCardConfig, totals: {
-    totalYield: DisplayValue;
-    totalGrid: DisplayValue;
-    batteryCapacity: DisplayValue;
-    inverterModeDisplay: DisplayValue;
-  }) {
+  private _renderTotalsPanel(
+    cfg: SolarCardConfig,
+    totals: {
+      totalYield: DisplayValue;
+      totalGrid: DisplayValue;
+      batteryCapacity: DisplayValue;
+      inverterModeDisplay: DisplayValue;
+    },
+  ) {
     const items: unknown[] = [];
     if (cfg.total_yield_entity) {
-      items.push(html`<div class="metric metric-bottom">
-        <div class="label">${localize('card.total_yield')}</div>
-        <div class="value smaller">${totals.totalYield.value} ${totals.totalYield.unit}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-bottom">
+          <div class="label">${localize('card.total_yield')}</div>
+          <div class="value smaller">${totals.totalYield.value} ${totals.totalYield.unit}</div>
+        </div>`,
+      );
     }
     if (cfg.total_grid_consumption_entity) {
-      items.push(html`<div class="metric metric-bottom">
-        <div class="label">${localize('card.grid_consumption')}</div>
-        <div class="value smaller">${totals.totalGrid.value} ${totals.totalGrid.unit}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-bottom">
+          <div class="label">${localize('card.grid_consumption')}</div>
+          <div class="value smaller">${totals.totalGrid.value} ${totals.totalGrid.unit}</div>
+        </div>`,
+      );
     }
     if (cfg.battery_capacity_entity) {
-      items.push(html`<div class="metric metric-bottom">
-        <div class="label">${localize('card.battery_capacity')}</div>
-        <div class="value smaller">${totals.batteryCapacity.value} ${totals.batteryCapacity.unit}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-bottom">
+          <div class="label">${localize('card.battery_capacity')}</div>
+          <div class="value smaller">${totals.batteryCapacity.value} ${totals.batteryCapacity.unit}</div>
+        </div>`,
+      );
     }
     if (cfg.inverter_mode_entity) {
-      items.push(html`<div class="metric metric-bottom">
-        <div class="label">${localize('card.inverter_mode')}</div>
-        <div class="value smaller">${totals.inverterModeDisplay.value}</div>
-      </div>`);
+      items.push(
+        html`<div class="metric metric-bottom">
+          <div class="label">${localize('card.inverter_mode')}</div>
+          <div class="value smaller">${totals.inverterModeDisplay.value}</div>
+        </div>`,
+      );
     }
     if (!items.length) return nothing;
     return html` <div class="totals-panel metrics-grid" style="--metrics-cols: ${items.length}">${items}</div>`;

@@ -5,12 +5,11 @@
 </p>
 
 #### Also with optional built-in Energy Sankey flow graph
+
 <p align="center">
   <img src="docs/images/overview-desktop-full.png" width="754"/>
   <img src="./docs/images/overview-mobile.png" height="345" hspace="10"/>
 </p>
-
-
 
 ## Features
 
@@ -26,17 +25,12 @@
 ## Installation
 
 ### HACS (Custom Repository)
-1. In HACS → Frontend → Three dots → Custom repositories
-2. Add this repo URL as type “Lovelace”
-3. Install “Solar Energy Card”
-4. Add the resource:
 
-```yaml
-url: /hacsfiles/lovelace-solar-card/solar-card.js
-type: module
-```
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=victorigualada&repository=lovelace-solar-card&category=plugin)
+
 
 ### Manual
+
 1. Download `solar-card.js` from the [latest release](https://github.com/victorigualada/lovelace-solar-card/releases)
 2. Place it in `www/` (e.g., `/config/www/solar-card.js`)
 3. Add the resource:
@@ -48,7 +42,7 @@ type: module
 
 ## Usage
 
-Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration. 
+Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration.
 
 <p align="center">
 <img src="/assets//images/configuration.png" width="80%"/>
@@ -61,21 +55,21 @@ You can also use YAML:
 ```yaml
 type: custom:solar-card
 # Left panel (required)
-production_entity: sensor.pv_production_now            # W or kW (required)
-current_consumption_entity: sensor.house_consumption    # W or kW (required)
-image_url: https://example.com/your/solar.jpg          # optional
+production_entity: sensor.pv_production_now # W or kW (required)
+current_consumption_entity: sensor.house_consumption # W or kW (required)
+image_url: https://example.com/your/solar.jpg # optional
 
 # Today (top-right) — optional; metrics render only when configured or derivable
-yield_today_entity: sensor.pv_yield_today               # kWh (optional; or derive from total_yield)
-grid_consumption_today_entity: sensor.grid_today        # kWh (optional; or derive from total_grid_consumption)
-battery_percentage_entity: sensor.battery_soc           # % (optional)
-inverter_state_entity: sensor.inverter_state            # text (optional)
+yield_today_entity: sensor.pv_yield_today # kWh (optional; or derive from total_yield)
+grid_consumption_today_entity: sensor.grid_today # kWh (optional; or derive from total_grid_consumption)
+battery_percentage_entity: sensor.battery_soc # % (optional)
+inverter_state_entity: sensor.inverter_state # text (optional)
 
 # Totals (bottom-right)
-total_yield_entity: sensor.pv_total_yield               # kWh
-total_grid_consumption_entity: sensor.grid_total        # kWh
-battery_capacity_entity: sensor.battery_capacity        # kWh (optional)
-inverter_mode_entity: sensor.inverter_mode              # text
+total_yield_entity: sensor.pv_total_yield # kWh
+total_grid_consumption_entity: sensor.grid_total # kWh
+battery_capacity_entity: sensor.battery_capacity # kWh (optional)
+inverter_mode_entity: sensor.inverter_mode # text
 
 # Options
 show_energy_flow: true                                  # show built‑in Energy Sankey
@@ -91,6 +85,7 @@ solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forec
 ```
 
 Notes:
+
 - The left panel requires both production and current consumption entities.
 - The Today section is optional. Each metric shows only if its entity is configured; for Yield/Grid it can also show if the corresponding total is set (derived via history since midnight).
 - If `trend_graph_entities` (or `grid_consumption_kwh_entity`) is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
@@ -106,9 +101,11 @@ Notes:
 ## Contributing / Development
 
 Requirements
+
 - Node.js >= 18.18 (for the ESLint + TS toolchain)
 
 Commands
+
 - Install: `yarn`
 - Dev server: `yarn start` (Rollup watch)
 - Build: `yarn build`

@@ -1,22 +1,46 @@
 name-template: '$RESOLVED_VERSION'
 tag-template: '$RESOLVED_VERSION'
 exclude-labels:
-  - 'skip-changelog'
+  - 'configuration'
+  - 'tooling'
+  
 version-resolver:
+  major:
+    labels:
+      - 'major-change'
   minor:
     labels:
+      - 'feature'
+      - 'enhancement'
+      - 'translation'
       - 'feat'
+      - 'documentation'
+  patch:
+    labels:
+      - 'fix'
+      - 'bugfix'
+      - 'bug'
   default: patch
 
 categories:
   - title: '🚀 Features'
-    label: 'feature'
+    labels: 
+      - 'feature'
+      - 'enhancement'
 
   - title: '🐛 Bug Fixes'
     labels:
       - 'fix'
       - 'bugfix'
       - 'bug'
+
+  - title: '📝 Documentation'
+    labels:
+      - 'documentation'
+
+  - title: '🌐 Translations'
+    labels:
+      - 'translation'
       
   - title: ':arrow_up: Dependencies'
     label: 'dependencies'
