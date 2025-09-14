@@ -1,14 +1,14 @@
 # Solar Energy Card for Home Assistant
 
 <p align="center">
-  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/main/docs/images/overview-desktop.png" width="80%"/>
+  <img src="docs/images/overview-desktop.png" width="80%"/>
 </p>
 
 #### Also with optional built-in Energy Sankey flow graph
 
 <p align="center">
-  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/main/docs/images/overview-desktop-full.png" width="70%"/>
-  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/main/docs/images/overview-mobile.png" width="13.4%" hspace="10"/>
+  <img src="docs/images/overview-desktop-full.png" width="754"/>
+  <img src="./docs/images/overview-mobile.png" height="345" hspace="10"/>
 </p>
 
 ## Features
@@ -45,7 +45,7 @@ type: module
 Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration.
 
 <p align="center">
-<img src="https://github.com/victorigualada/lovelace-solar-card/raw/main/docs/images/configuration.png" width="80%"/>
+<img src="/assets//images/configuration.png" width="80%"/>
 </p>
 
 <br />
@@ -72,11 +72,15 @@ battery_capacity_entity: sensor.battery_capacity # kWh (optional)
 inverter_mode_entity: sensor.inverter_mode # text
 
 # Options
-show_energy_flow: true # show built‑in Energy Sankey
-show_top_devices: true # show devices row
-top_devices_max: 4 # 1–8
-show_solar_forecast: true # enable forecast column
-weather_entity: weather.home # optional (shows weather)
+show_energy_flow: true                                  # show built‑in Energy Sankey
+show_top_devices: true                                  # show devices row
+top_devices_max: 4                                      # 1–8
+grid_consumption_kwh_entity: sensor.grid_energy_daily   # optional single kWh tile (legacy)
+trend_graph_entities:                                   # optional list of tile trend graphs
+  - sensor.grid_energy_daily
+  - sensor.pv_yield_today
+show_solar_forecast: true                               # enable forecast column
+weather_entity: weather.home                            # optional (shows weather)
 solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forecast)
 ```
 
@@ -84,6 +88,7 @@ Notes:
 
 - The left panel requires both production and current consumption entities.
 - The Today section is optional. Each metric shows only if its entity is configured; for Yield/Grid it can also show if the corresponding total is set (derived via history since midnight).
+- If `trend_graph_entities` (or `grid_consumption_kwh_entity`) is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
 - The Energy Flow section requires that your Energy dashboard is configured.
 

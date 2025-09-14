@@ -19,6 +19,7 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   total_grid_consumption_entity?: string;
   battery_capacity_entity?: string;
   inverter_mode_entity?: string;
+  trend_graph_entities?: string[];
 }
 
 export interface DisplayValue {
