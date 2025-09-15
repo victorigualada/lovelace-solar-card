@@ -1,14 +1,14 @@
 # Solar Energy Card for Home Assistant
 
 <p align="center">
-  <img src="docs/images/overview-desktop.png" width="80%"/>
+  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/refs/heads/main/docs/images/overview-desktop.png" width="80%"/>
 </p>
 
 #### Also with optional built-in Energy Sankey flow graph
 
 <p align="center">
-  <img src="docs/images/overview-desktop-full.png" width="754"/>
-  <img src="./docs/images/overview-mobile.png" height="345" hspace="10"/>
+  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/refs/heads/main/docs/images/overview-desktop-full.png" width="754"/>
+  <img src="https://github.com/victorigualada/lovelace-solar-card/raw/refs/heads/main/docs/images/overview-mobile.png" height="345" hspace="10"/>
 </p>
 
 ## Features
@@ -45,7 +45,7 @@ type: module
 Add a new card in Lovelace and search for “Solar Card”. The visual editor guides you through configuration.
 
 <p align="center">
-<img src="/assets//images/configuration.png" width="80%"/>
+<img src="https://github.com/victorigualada/lovelace-solar-card/raw/refs/heads/main/docs/images/configuration.png" width="80%"/>
 </p>
 
 <br />
