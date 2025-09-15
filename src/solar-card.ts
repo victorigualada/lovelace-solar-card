@@ -150,7 +150,6 @@ class HaSolarCard extends LitElement {
       color: var(--secondary-text-color);
     }
     .overview-panel .metric .value {
-      justify-self: end;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
