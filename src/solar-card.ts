@@ -84,7 +84,6 @@ class HaSolarCard extends LitElement {
     ha-card {
       padding: 16px;
       --label-color: var(--secondary-text-color);
-      /* Also make the card itself a query container so rules use card width */
       container-type: inline-size;
     }
 
@@ -101,8 +100,9 @@ class HaSolarCard extends LitElement {
 
     /* Overview (content + image) */
     .overview-panel {
-      display: grid;
-      grid-template-columns: 1.2fr auto;
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
       gap: 40px;
       align-items: center;
       padding-right: 16px;
@@ -145,9 +145,14 @@ class HaSolarCard extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      font-size: 1.2rem;
+      padding-bottom: 4px;
     }
     .overview-panel .metric .label ha-icon {
       color: var(--secondary-text-color);
+      width: 28px;
+      height: 28px;
+      --mdc-icon-size: 28px;
     }
     .overview-panel .metric .value {
       white-space: nowrap;
@@ -308,6 +313,9 @@ class HaSolarCard extends LitElement {
     }
 
     /* Grids for top/bottom sections */
+    .metrics-panel {
+      display: grid;
+    }
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr));
@@ -330,21 +338,23 @@ class HaSolarCard extends LitElement {
     @container (max-width: 1200px) {
       .container,
       .container.has-forecast {
-        grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-        row-gap: 12px;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: wrap;
       }
       .overview-panel {
         padding-right: 0;
-        grid-template-columns: 1fr auto;
+        padding-bottom: 12px;
+        display: flex;
         gap: 12px;
         align-items: start;
       }
-      .today-panel,
-      .totals-panel,
       .forecast-panel {
-        border-left: none;
-        padding-left: 0;
+        display: flex;
+      }
+      .metrics-panel {
+        min-width: calc(100% - 320px);
       }
       .forecast {
         justify-self: stretch;
@@ -356,36 +366,24 @@ class HaSolarCard extends LitElement {
         justify-self: end;
       }
       .metrics-grid {
+        border-left: none;
         grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr));
         min-width: 0;
       }
+      .today-panel, .totals-panel {
+        padding-left: 0;
+      }
+
       .today-panel .metric,
       .totals-panel .metric {
         min-width: 0;
       }
     }
 
-    /* Wide screens: left spans two rows; right sections occupy col 2 rows 1/2; forecast spans both rows in last column */
-    @container (min-width: 1201px) {
-      .overview-panel {
-        grid-column: 1;
-        grid-row: 1 / span 2;
-      }
-      .today-panel {
-        grid-column: 2;
-        grid-row: 1;
-      }
-      .totals-panel {
-        grid-column: 2;
-        grid-row: 2;
-      }
-      .container.has-forecast .forecast-panel {
-        grid-column: 3;
-        grid-row: 1 / span 2;
-      }
-    }
-
     @container (max-width: 900px) {
+      .metrics-panel {
+        min-width: calc(100% - 215px);
+      }
       .devices-row .badges {
         flex-wrap: wrap;
         justify-content: center;
@@ -413,18 +411,33 @@ class HaSolarCard extends LitElement {
     }
 
     @container (max-width: 700px) {
-      /* Stack overview content vertically when very narrow */
-      .overview-panel {
-        grid-template-columns: 1fr;
-      }
       .overview-panel .content {
         order: 1;
+      }
+      .forecast-panel {
+        order: 3;
+        width: 100%;
+        border-left: none;
+        padding-left: 0;
+        padding-top: 12px;
+      }
+      .metrics-panel {
+        min-width: 100%;
+      }
+      .forecast {
+        padding: 0;
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
       }
       .overview-panel .image {
         order: 2;
         justify-self: start;
         width: clamp(80px, 40cqi, 120px);
         max-width: 120px;
+      }
+      .metrics-grid {
+        grid-template-columns: repeat(var(--metrics-cols, 4), minmax(0, 1fr));
       }
       .metric .value {
         font-size: 1.5rem;
@@ -438,6 +451,9 @@ class HaSolarCard extends LitElement {
       .overview-panel {
         grid-template-columns: 1fr auto;
       }
+      .metrics-panel {
+        width: 100%;
+      }
       .image {
         width: clamp(90px, 32cqi, 130px);
         max-width: 130px;
@@ -446,9 +462,6 @@ class HaSolarCard extends LitElement {
       .metrics-grid {
         grid-template-columns: repeat(min(var(--metrics-cols, 4), 2), minmax(0, 1fr));
         min-width: 0;
-      }
-      .metric-bottom {
-        padding-left: 12px;
       }
     }
   `;
@@ -733,7 +746,9 @@ class HaSolarCard extends LitElement {
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
           ${this._renderOverviewPanel(overview.production, overview.consumption, overview.image_url)}
-          ${this._renderTodayPanel(cfg, today)} ${this._renderTotalsPanel(cfg, totals)}
+          <div class="metrics-panel">
+            ${this._renderTodayPanel(cfg, today)} ${this._renderTotalsPanel(cfg, totals)}
+          </div>
           ${cfg.show_solar_forecast ? this._renderForecastPanel(forecast) : nothing}
         </div>
 
