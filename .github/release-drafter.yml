@@ -20,6 +20,7 @@ version-resolver:
       - 'fix'
       - 'bugfix'
       - 'bug'
+      - 'maintenance'
   default: patch
 
 categories:
@@ -37,6 +38,10 @@ categories:
   - title: '📝 Documentation'
     labels:
       - 'documentation'
+
+  - title: '⚙️ Maintenance'
+    labels:
+      - 'maintenance'
 
   - title: '🌐 Translations'
     labels:
