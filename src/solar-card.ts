@@ -161,7 +161,7 @@ class HaSolarCard extends LitElement {
   constructor() {
     super();
     /** @type {any} */
-    this._config = { type: 'solar-card' } as SolarCardConfig;
+    this._config = { type: 'custom:solar-card' } as SolarCardConfig;
     this._hass = null;
     // Cache for derived daily values computed from totals
     this._gridTodayCache = { key: null, dateKey: null, result: null, inflight: false };
@@ -192,8 +192,8 @@ class HaSolarCard extends LitElement {
     return document.createElement('solar-card-editor');
   }
 
-  static getStubConfig() {
-    return stubConfig();
+  static getStubConfig(hass?: Hass, entities?: string[], entitiesFallback?: string[]) {
+    return stubConfig(hass, entities, entitiesFallback);
   }
 
   set hass(hass: Hass) {
