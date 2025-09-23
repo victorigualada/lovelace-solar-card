@@ -2,6 +2,7 @@
 // Element: solar-card
 
 import { LitElement, html, css, nothing, svg } from 'lit';
+import { navigate } from 'custom-card-helpers';
 import { localize } from './localize/localize';
 // Ensure the visual editor is registered when this module loads
 import './solar-card-editor';
@@ -1342,12 +1343,12 @@ class HaSolarCard extends LitElement {
       let entityId = statId;
       // Some stats could be like 'sensor.xxx'; if not, we can't resolve
       if (!entityId.includes('.')) {
-        window.open(`/developer-tools/statistics?statistic_id=${encodeURIComponent(statId)}`, '_blank');
+        this._navigateToPath(`/developer-tools/statistics?statistic_id=${encodeURIComponent(statId)}`);
         return;
       }
       const entry = this._entityRegistry.find((e) => e.entity_id === entityId);
       if (entry?.device_id) {
-        window.open(`/config/devices/device/${entry.device_id}`, '_blank');
+        this._navigateToPath(`/config/devices/device/${entry.device_id}`);
         return;
       }
       // Fallback to more-info dialog for the entity
@@ -1355,8 +1356,21 @@ class HaSolarCard extends LitElement {
       this.dispatchEvent(ev);
     } catch (_e) {
       // Fallback: open statistics page
-      window.open(`/developer-tools/statistics?statistic_id=${encodeURIComponent(statId)}`, '_blank');
+      this._navigateToPath(`/developer-tools/statistics?statistic_id=${encodeURIComponent(statId)}`);
     }
+  }
+
+  private _navigateToPath(path: string) {
+    const targetPath = path.startsWith('/') ? path : `/${path}`;
+    if (typeof navigate === 'function') {
+      try {
+        navigate(this, targetPath);
+        return;
+      } catch (_err) {
+        // fall back to default handling
+      }
+    }
+    window.location.assign(targetPath);
   }
 
   _formatTodayDate(): string {
