@@ -19,6 +19,14 @@ export class HaSolarCardEditor extends LitElement {
       margin: 8px 0 0;
       font-weight: 600;
     }
+    .dependent {
+      margin-inline-start: 8px;
+      padding: 12px;
+      border-inline-start: 3px solid var(--divider-color, #d3dce5);
+    }
+    .dependent ha-form {
+      margin-top: 4px;
+    }
   `;
 
   static get properties() {
@@ -30,7 +38,7 @@ export class HaSolarCardEditor extends LitElement {
 
   constructor() {
     super();
-    this.config = { type: 'solar-card' } as SolarCardConfig;
+    this.config = { type: 'custom:solar-card' } as SolarCardConfig;
     this._hass = null;
   }
 
@@ -50,6 +58,8 @@ export class HaSolarCardEditor extends LitElement {
 
   _buildSchemas() {
     const cfg = this.config || {};
+    const showSolarForecast = !!cfg.show_solar_forecast;
+    const showTopDevices = !!cfg.show_top_devices;
     const overview = [
       { name: 'production_entity', required: true, selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       {
@@ -72,36 +82,37 @@ export class HaSolarCardEditor extends LitElement {
       { name: 'inverter_mode_entity', selector: { entity: { domain: 'sensor' } } },
     ];
     // Weather forecast section
-    const weather = [
+    const weatherToggle = [
       { name: 'show_solar_forecast', selector: { boolean: {} } },
     ];
-    if (cfg.show_solar_forecast) {
-      // @ts-expect-error dynamic schema
-      weather.push({ name: 'weather_entity', selector: { entity: { domain: 'weather' } } });
-      weather.push({
-        name: 'solar_forecast_today_entity',
-        // @ts-expect-error dynamic schema
-        selector: { entity: { domain: 'sensor', device_class: 'energy' } },
-      });
-    }
+    const weatherOptions = showSolarForecast
+      ? [
+          { name: 'weather_entity', selector: { entity: { domain: 'weather' } } },
+          {
+            name: 'solar_forecast_today_entity',
+            selector: { entity: { domain: 'sensor', device_class: 'energy' } },
+          },
+        ]
+      : [];
     // Top consuming devices section
-    const topDevices = [
+    const topDevicesToggle = [
       { name: 'show_top_devices', selector: { boolean: {} } },
     ];
-    if (cfg.show_top_devices) {
-      // @ts-expect-error dynamic schema
-      topDevices.push({ name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } });
-    }
+    const topDevicesOptions = showTopDevices
+      ? [
+          { name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } },
+        ]
+      : [];
     // Trend graphs section (includes legacy single entity)
     const trend = [
       { name: 'trend_graph_entities', selector: { entity: { multiple: true, domain: 'sensor' } } },
       { name: 'trend_graph_hours_to_show', selector: { number: { min: 1, max: 168, mode: 'box' } } },
-];
+    ];
     // Sankey section
     const sankey = [
       { name: 'show_energy_flow', selector: { boolean: {} } },
     ];
-    return { overview, today, totals, weather, topDevices, trend, sankey };
+    return { overview, today, totals, weatherToggle, weatherOptions, topDevicesToggle, topDevicesOptions, trend, sankey };
   }
 
   render() {
@@ -146,22 +157,46 @@ export class HaSolarCardEditor extends LitElement {
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
-            .schema=${schemas.weather}
+            .schema=${schemas.weatherToggle}
             .computeLabel=${this._computeLabel}
             .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
           ></ha-form>
+          ${schemas.weatherOptions.length
+            ? html`<div class="dependent">
+                <ha-form
+                  .hass=${this._hass}
+                  .data=${this.config}
+                  .schema=${schemas.weatherOptions}
+                  .computeLabel=${this._computeLabel}
+                  .computeHelper=${this._computeHelper}
+                  @value-changed=${this._valueChanged}
+                ></ha-form>
+              </div>`
+            : null}
         </div>
         <div class="section">
           <h3>Top consuming devices</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
-            .schema=${schemas.topDevices}
+            .schema=${schemas.topDevicesToggle}
             .computeLabel=${this._computeLabel}
             .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
           ></ha-form>
+          ${schemas.topDevicesOptions.length
+            ? html`<div class="dependent">
+                <ha-form
+                  .hass=${this._hass}
+                  .data=${this.config}
+                  .schema=${schemas.topDevicesOptions}
+                  .computeLabel=${this._computeLabel}
+                  .computeHelper=${this._computeHelper}
+                  @value-changed=${this._valueChanged}
+                ></ha-form>
+              </div>`
+            : null}
         </div>
         <div class="section">
           <h3>Trend graphs</h3>
