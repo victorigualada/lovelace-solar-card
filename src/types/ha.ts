@@ -41,6 +41,7 @@ export interface EntityRegistryEntry {
 export interface DeviceRegistryEntry {
   id: string;
   icon?: string;
+  name?: string;
 }
 
 export interface DeviceConsumptionPref {
