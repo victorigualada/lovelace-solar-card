@@ -471,6 +471,16 @@ class HaSolarCard extends LitElement {
         width: 80%;
       }
     }
+
+    @container (max-width: 280px) {
+      .image {
+        display: none;
+      }
+
+      .devices-row .badge {
+        max-width: 100%;
+      }
+    }
   `;
 
   // Type fields for TS
@@ -640,7 +650,7 @@ class HaSolarCard extends LitElement {
       inverter_mode_entity: '',
     }
   }
-  
+
   set hass(hass: Hass) {
     const prev = this._hass;
     // Keep Energy Flow child card in sync with latest hass without forcing a full re-render
