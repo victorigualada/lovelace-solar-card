@@ -124,6 +124,9 @@ class SolarCardOverviewPanel extends LitElement {
     }
 
     @container (max-width: 568px) {
+      :host {
+        width: 100%;
+      }
       .overview-panel {
         grid-template-columns: 1fr auto;
       }

@@ -509,7 +509,7 @@ class HaSolarCard extends LitElement {
   constructor() {
     super();
     /** @type {any} */
-    this._config = { type: 'solar-card' } as SolarCardConfig;
+    this._config = { type: 'custom:solar-card' } as SolarCardConfig;
     this._hass = null;
     // Cache for derived daily values computed from totals
     this._gridTodayCache = { key: null, dateKey: null, result: null, inflight: false };
@@ -572,10 +572,6 @@ class HaSolarCard extends LitElement {
     return document.createElement('solar-card-editor');
   }
 
-<<<<<<< Updated upstream
-  static getStubConfig() {
-    return stubConfig();
-=======
   static buildCandidateLists(
     hass?: Hass,
     entities?: string[],
@@ -643,9 +639,8 @@ class HaSolarCard extends LitElement {
       battery_capacity_entity: '',
       inverter_mode_entity: '',
     }
->>>>>>> Stashed changes
   }
-
+  
   set hass(hass: Hass) {
     const prev = this._hass;
     // Keep Energy Flow child card in sync with latest hass without forcing a full re-render

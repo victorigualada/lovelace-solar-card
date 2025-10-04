@@ -1,9 +1,10 @@
+import type { Hass } from '../types/ha';
 import type { SolarCardConfig } from '../types/solar-card-config';
 
 export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   const normalized: SolarCardConfig = {
     ...config,
-    type: config.type ?? 'solar-card',
+    type: config.type ?? 'custom:solar-card',
     production_entity: config.production_entity ?? config.yield_today_entity ?? '',
     current_consumption_entity: config.current_consumption_entity ?? '',
     image_url: config.image_url ?? '',
@@ -33,11 +34,59 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   return normalized;
 }
 
-export function stubConfig(): SolarCardConfig {
+function buildCandidateLists(
+  hass?: Hass,
+  entities?: string[],
+  entitiesFallback?: string[],
+): { power: string[]; fallback: string[] } {
+  const power: string[] = [];
+  const fallback: string[] = [];
+  const seen = new Set<string>();
+  const push = (collection: string[], entityId: string) => {
+    if (!entityId || seen.has(entityId)) return;
+    collection.push(entityId);
+    seen.add(entityId);
+  };
+
+  const consider = (entityId: string) => {
+    if (!entityId) return;
+    const state = hass?.states?.[entityId];
+    const target = state?.attributes?.device_class === 'power' ? power : fallback;
+    push(target, entityId);
+  };
+
+  for (const list of [entities, entitiesFallback]) {
+    if (!Array.isArray(list)) continue;
+    for (const entityId of list) consider(entityId);
+  }
+
+  if (hass) {
+    const states = Object.values(hass.states || {});
+    for (const state of states) {
+      const entityId = state.entity_id;
+      const isSensor = entityId.startsWith('sensor.');
+      if (!isSensor) continue;
+      const target = state.attributes?.device_class === 'power' ? power : fallback;
+      push(target, entityId);
+    }
+  }
+
+  return { power, fallback };
+}
+
+export function stubConfig(
+  hass?: Hass,
+  entities?: string[],
+  entitiesFallback?: string[],
+): SolarCardConfig {
+  const { power, fallback } = buildCandidateLists(hass, entities, entitiesFallback);
+  const defaultProduction = power[0] || fallback[0] || 'sensor.solar_card_stub_production';
+  const defaultConsumption = power[1] || power[0] || fallback[1] || fallback[0] || 'sensor.solar_card_stub_consumption';
+
   return {
-    type: 'solar-card',
-    production_entity: '',
-    current_consumption_entity: '',
+    type: 'custom:solar-card',
+    production_entity: defaultProduction,
+    current_consumption_entity: defaultConsumption,
     image_url: '',
     show_energy_flow: false,
     show_top_devices: false,
