@@ -228,7 +228,7 @@ export class HaSolarCardEditor extends LitElement {
     return html`
       <div class="editor">
         <div class="section">
-          <h3>Overview</h3>
+          <h3>${localize('editor.section_overview')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -239,7 +239,7 @@ export class HaSolarCardEditor extends LitElement {
           ></ha-form>
         </div>
         <div class="section">
-          <h3>Production and consumption</h3>
+          <h3>${localize('editor.section_totals_sources')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -250,11 +250,11 @@ export class HaSolarCardEditor extends LitElement {
           ></ha-form>
         </div>
         <div class="section">
-          <h3>Custom metrics</h3>
+          <h3>${localize('editor.section_custom_metrics')}</h3>
           ${this._renderTotalsMetricsSection()}
         </div>
         <div class="section">
-          <h3>Weather forecast</h3>
+          <h3>${localize('editor.section_weather')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -277,7 +277,7 @@ export class HaSolarCardEditor extends LitElement {
             : null}
         </div>
         <div class="section">
-          <h3>Top consuming devices</h3>
+          <h3>${localize('editor.section_top_devices')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -300,7 +300,7 @@ export class HaSolarCardEditor extends LitElement {
             : null}
         </div>
         <div class="section">
-          <h3>Trend graphs</h3>
+          <h3>${localize('editor.section_trend')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -311,7 +311,7 @@ export class HaSolarCardEditor extends LitElement {
           ></ha-form>
         </div>
         <div class="section">
-          <h3>Sankey flow graph</h3>
+          <h3>${localize('editor.section_sankey')}</h3>
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
@@ -597,38 +597,15 @@ export class HaSolarCardEditor extends LitElement {
   }
 
   _computeLabel = (schema) => {
-    const labelMap = {
-      production_entity: 'PV production entity (W / kW)',
-      current_consumption_entity: 'Current consumption entity (W / kW)',
-      show_energy_flow: 'Show Energy Flow (built-in)',
-      show_top_devices: 'Show top devices row',
-      top_devices_max: 'Max device badges (1–8)',
-      show_solar_forecast: 'Show solar forecast panel',
-      weather_entity: 'Weather entity (optional)',
-      solar_forecast_today_entity: 'Solar forecast today entity (kWh, optional)',
-      total_yield_entity: 'Total yield entity (kWh)',
-      total_grid_consumption_entity: 'Total grid consumption entity (kWh)',
-      image_url: 'Image URL (optional)',
-      trend_graph_entities: 'Trend graph entities (multiple sensors)',
-      trend_graph_hours_to_show: 'Trend graph hours (default 24)',
-    } as Record<string, string>;
-    return labelMap[schema.name] || schema.name;
+    const key = `editor.label_${schema.name}`;
+    const localized = localize(key);
+    return localized && localized !== key ? localized : schema.name;
   };
 
   _computeHelper = (schema) => {
-    const helperMap = {
-      show_energy_flow: 'Adds the built-in Energy Flow (Sankey) graph below this card (requires Energy configuration).',
-      show_top_devices:
-        'Adds a single-row list of top-consuming devices from Energy preferences (requires Energy configuration).',
-      top_devices_max: 'Number of top-consuming device badges to display',
-      show_solar_forecast: 'Shows a compact forecast panel aligned to the right.',
-      weather_entity: 'If set, shows temperature and condition for today.',
-      solar_forecast_today_entity: "If set and no weather entity, shows today's expected solar production.",
-      trend_graph_entities:
-        'Optional. Select one or more sensor entities to render as individual trend graphs (Tile features).',
-      trend_graph_hours_to_show: 'Optional. Applies to all auto-generated trend graphs.',
-    } as Record<string, string>;
-    return helperMap[schema.name];
+    const key = `editor.helper_${schema.name}`;
+    const localized = localize(key);
+    return localized && localized !== key ? localized : undefined;
   };
 }
 
