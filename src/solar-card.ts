@@ -966,12 +966,12 @@ class HaSolarCard extends LitElement {
       ),
     ];
     const columns = Math.min(Math.max(items.length, 1), 4);
-    const grouped: any = items.reduce((acc: any, item, idx) => {
+    const grouped: Array<Array<unknown>> = items.reduce((acc: Array<Array<unknown>>, item, idx) => {
       const col = idx % columns;
       if (!acc[col]) acc[col] = [];
       acc[col].push(item);
       return acc;
-    }, [] as unknown[][]);
+    }, []);
     return grouped.length
       ? html` <div class="metrics-grid" style="--metrics-cols: ${columns}">
           ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
