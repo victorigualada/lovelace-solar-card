@@ -328,6 +328,9 @@ class HaSolarCard extends LitElement {
       gap: 12px;
       align-items: start;
     }
+    .metrics-grid .metric-wrapper {
+      display: contents;
+    }
     .metrics-grid .metric {
       min-width: 0;
     }
@@ -336,6 +339,10 @@ class HaSolarCard extends LitElement {
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
+    }
+    .metric-column {
+      display: grid;
+      gap: 24px;
     }
 
     /* Stack sections on narrower screens */
@@ -959,7 +966,17 @@ class HaSolarCard extends LitElement {
       ),
     ];
     const columns = Math.min(Math.max(items.length, 1), 4);
-    return html` <div class="metrics-grid" style="--metrics-cols: ${columns}">${items}</div>`;
+    const grouped: Array<Array<unknown>> = items.reduce((acc: Array<Array<unknown>>, item, idx) => {
+      const col = idx % columns;
+      if (!acc[col]) acc[col] = [];
+      acc[col].push(item);
+      return acc;
+    }, []);
+    return grouped.length
+      ? html` <div class="metrics-grid" style="--metrics-cols: ${columns}">
+          ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
+        </div>`
+      : nothing;
   }
 
   private _renderForecastPanel(forecast: {
