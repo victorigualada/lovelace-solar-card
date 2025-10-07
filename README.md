@@ -15,7 +15,9 @@
 
 - Left panel: production and current consumption with optional image/illustration
 - Today metrics: yield today, grid today, battery percentage, inverter state
-- Totals: lifetime yield, total grid consumption, battery capacity, inverter mode
+- Totals grid: lifetime yield, total grid consumption, battery capacity, inverter mode
+- Custom totals metrics: add up to 8 extra entities with friendly labels
+- Drag-and-drop ordering: reorder custom metrics directly in the visual editor
 - Optional devices row: lists top consuming devices (from Energy preferences)
 - Optional energy flow: embeds the built‑in Energy Sankey card below
 - Optional compact forecast panel: weather or expected solar forecast
@@ -59,23 +61,22 @@ production_entity: sensor.pv_production_now # W or kW (required)
 current_consumption_entity: sensor.house_consumption # W or kW (required)
 image_url: https://example.com/your/solar.jpg # optional
 
-# Today (top-right) — optional; metrics render only when configured or derivable
-yield_today_entity: sensor.pv_yield_today # kWh (optional; or derive from total_yield)
-grid_consumption_today_entity: sensor.grid_today # kWh (optional; or derive from total_grid_consumption)
-battery_percentage_entity: sensor.battery_soc # % (optional)
-inverter_state_entity: sensor.inverter_state # text (optional)
-
-# Totals (bottom-right)
+# Totals (right panels)
 total_yield_entity: sensor.pv_total_yield # kWh
 total_grid_consumption_entity: sensor.grid_total # kWh
-battery_capacity_entity: sensor.battery_capacity # kWh (optional)
-inverter_mode_entity: sensor.inverter_mode # text
+# Optional custom metrics for the totals grid (up to 8 entries, supports drag & drop ordering)
+totals_metrics:
+  - entity: sensor.pv_total_yield
+    label: Total yield
+  - entity: sensor.grid_total
+    label: Grid consumption
+  - entity: sensor.battery_total_throughput
+    label: Battery throughput
 
 # Options
 show_energy_flow: true                                  # show built‑in Energy Sankey
 show_top_devices: true                                  # show devices row
 top_devices_max: 4                                      # 1–8
-grid_consumption_kwh_entity: sensor.grid_energy_daily   # optional single kWh tile (legacy)
 trend_graph_entities:                                   # optional list of tile trend graphs
   - sensor.grid_energy_daily
   - sensor.pv_yield_today
@@ -87,8 +88,9 @@ solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forec
 Notes:
 
 - The left panel requires both production and current consumption entities.
-- The Today section is optional. Each metric shows only if its entity is configured; for Yield/Grid it can also show if the corresponding total is set (derived via history since midnight).
-- If `trend_graph_entities` (or `grid_consumption_kwh_entity`) is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
+- The Today section shows derived yield and grid consumption metrics automatically, and the totals grid flows onto additional rows after four items.
+- Custom totals metrics accept any label (spaces allowed) and the order you set in the editor is preserved in the card.
+- If `trend_graph_entities` is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
 - The Energy Flow section requires that your Energy dashboard is configured.
 

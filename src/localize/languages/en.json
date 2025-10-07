@@ -16,8 +16,20 @@
     "grid_consumption": "Grid consumption",
     "battery_capacity": "Battery capacity",
     "inverter_mode": "Inverter mode",
+    "total_metric": "Metric",
     "weather_today": "Weather today",
     "solar_forecast": "Solar forecast",
     "expected_forecast": "Expected forecast"
+  },
+  "editor": {
+    "metrics_using_defaults": "Currently using defaults from totals data sources. Editing will save a custom list.",
+    "metrics_empty": "No metrics configured yet.",
+    "add_metric": "Add metric",
+    "metric_label": "Display label (optional)",
+    "metric_entity": "Entity",
+    "metric_unit": "Unit override (optional)",
+    "metric_icon": "Icon (optional)",
+    "remove_metric": "Remove metric",
+    "reorder_metric": "Reorder metric"
   }
 }

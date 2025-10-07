@@ -10,8 +10,20 @@
     "grid_consumption": "Netzverbrauch",
     "battery_capacity": "Batteriekapazität",
     "inverter_mode": "Wechselrichtermodus",
+    "total_metric": "Metrik",
     "weather_today": "Wetter heute",
     "solar_forecast": "Solarvorhersage",
     "expected_forecast": "Erwartete Vorhersage"
+  },
+  "editor": {
+    "metrics_using_defaults": "Verwendet derzeit die Standardwerte der Totals-Quellen. Beim Bearbeiten wird eine benutzerdefinierte Liste gespeichert.",
+    "metrics_empty": "Noch keine Metriken konfiguriert.",
+    "add_metric": "Metrik hinzufügen",
+    "metric_label": "Anzeigename (optional)",
+    "metric_entity": "Entität",
+    "metric_unit": "Einheit überschreiben (optional)",
+    "metric_icon": "Symbol (optional)",
+    "remove_metric": "Metrik entfernen",
+    "reorder_metric": "Metrik neu anordnen"
   }
 }

@@ -10,8 +10,20 @@
     "grid_consumption": "Netverbruik",
     "battery_capacity": "Batterijcapaciteit",
     "inverter_mode": "Omvormermodus",
+    "total_metric": "Metriek",
     "weather_today": "Weer vandaag",
     "solar_forecast": "Zonneprognose",
     "expected_forecast": "Verwachte prognose"
+  },
+  "editor": {
+    "metrics_using_defaults": "Gebruikt momenteel de standaardwaarden van de totale gegevensbronnen. Bewerken slaat een aangepaste lijst op.",
+    "metrics_empty": "Nog geen metrieken geconfigureerd.",
+    "add_metric": "Metriek toevoegen",
+    "metric_label": "Weergavelabel (optioneel)",
+    "metric_entity": "Entiteit",
+    "metric_unit": "Eenheid overschrijven (optioneel)",
+    "metric_icon": "Icoon (optioneel)",
+    "remove_metric": "Metriek verwijderen",
+    "reorder_metric": "Metriek opnieuw ordenen"
   }
 }

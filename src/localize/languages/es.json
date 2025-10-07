@@ -10,8 +10,20 @@
     "grid_consumption": "Consumo de red",
     "battery_capacity": "Capacidad de la batería",
     "inverter_mode": "Modo del inversor",
+    "total_metric": "Métrica",
     "weather_today": "Tiempo hoy",
     "solar_forecast": "Pronóstico solar",
     "expected_forecast": "Pronóstico esperado"
+  },
+  "editor": {
+    "metrics_using_defaults": "Actualmente se usan los valores predeterminados de las fuentes de totales. Al editar se guardará una lista personalizada.",
+    "metrics_empty": "Todavía no hay métricas configuradas.",
+    "add_metric": "Añadir métrica",
+    "metric_label": "Etiqueta mostrada (opcional)",
+    "metric_entity": "Entidad",
+    "metric_unit": "Unidad personalizada (opcional)",
+    "metric_icon": "Icono (opcional)",
+    "remove_metric": "Eliminar métrica",
+    "reorder_metric": "Reordenar métrica"
   }
 }

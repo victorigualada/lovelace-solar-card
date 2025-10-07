@@ -11,15 +11,18 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   show_solar_forecast?: boolean;
   weather_entity?: string;
   solar_forecast_today_entity?: string;
-  yield_today_entity?: string;
-  grid_consumption_today_entity?: string;
-  battery_percentage_entity?: string;
-  inverter_state_entity?: string;
   total_yield_entity?: string;
   total_grid_consumption_entity?: string;
-  battery_capacity_entity?: string;
-  inverter_mode_entity?: string;
+  totals_metrics?: SolarCardTotalsMetric[];
   trend_graph_entities?: string[];
+}
+
+export interface SolarCardTotalsMetric {
+  id?: string;
+  entity?: string;
+  label?: string;
+  unit?: string;
+  icon?: string;
 }
 
 export interface DisplayValue {
