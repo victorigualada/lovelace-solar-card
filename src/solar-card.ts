@@ -334,6 +334,9 @@ class HaSolarCard extends LitElement {
     .metrics-grid .metric {
       min-width: 0;
     }
+    .metrics-grid .metric:hover {
+      cursor: pointer;
+    }
     .metrics-grid .metric .label {
       white-space: nowrap;
       overflow: hidden;
@@ -416,9 +419,9 @@ class HaSolarCard extends LitElement {
       }
     }
 
-    @container (max-width: 700px) {
-      .overview-panel .content {
-        order: 1;
+    @container (max-width: 756px) {
+      .metrics-panel {
+        min-width: 100%;
       }
       .forecast-panel {
         order: 3;
@@ -427,15 +430,21 @@ class HaSolarCard extends LitElement {
         padding-left: 0;
         padding-top: 12px;
       }
-      .metrics-panel {
-        min-width: 100%;
-      }
       .forecast {
         padding: 0;
         display: flex;
         width: 100%;
         justify-content: space-between;
       }
+    }
+
+    @container (max-width: 700px) {
+      .overview-panel .content {
+        order: 1;
+      }
+      
+
+      
       .overview-panel .image {
         order: 2;
         justify-self: start;
@@ -850,6 +859,8 @@ class HaSolarCard extends LitElement {
     return {
       yieldToday,
       gridToday,
+      yieldEntity: cfg.total_yield_entity || null,
+      gridEntity: cfg.total_grid_consumption_entity || null,
     };
   }
 
@@ -868,6 +879,7 @@ class HaSolarCard extends LitElement {
         value: display.value,
         unit,
         icon: typeof metric.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : null,
+        entity: entityId || null,
       };
     });
   }
@@ -935,18 +947,38 @@ class HaSolarCard extends LitElement {
   }
 
   private _renderMetricsPanel(
-    today: { yieldToday: DisplayValue; gridToday: DisplayValue },
-    totals: Array<{ key: string; label: string; value: string; unit: string; icon: string | null }>,
+    today: {
+      yieldToday: DisplayValue;
+      gridToday: DisplayValue;
+      yieldEntity: string | null;
+      gridEntity: string | null;
+    },
+    totals: Array<{
+      key: string;
+      label: string;
+      value: string;
+      unit: string;
+      icon: string | null;
+      entity: string | null;
+    }>,
   ) {
     const items: unknown[] = [
-      html`<div class="metric metric-top">
+      html`<div
+        class="metric metric-top"
+        data-entity="${today.yieldEntity || ''}"
+        @click=${this._handleMetricClick}
+      >
         <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
         <div class="label">${localize('card.yield_today')}</div>
         <div class="value smaller">
           ${today.yieldToday.value}${today.yieldToday.unit ? html` ${today.yieldToday.unit}` : ''}
         </div>
       </div>`,
-      html`<div class="metric metric-top">
+      html`<div
+        class="metric metric-top"
+        data-entity="${today.gridEntity || ''}"
+        @click=${this._handleMetricClick}
+      >
         <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
         <div class="label">${localize('card.grid_today')}</div>
         <div class="value smaller">
@@ -954,7 +986,12 @@ class HaSolarCard extends LitElement {
         </div>
       </div>`,
       ...totals.map(
-        (metric) => html`<div class="metric metric-bottom" data-metric-key="${metric.key}">
+        (metric) => html`<div
+          class="metric metric-bottom"
+          data-metric-key="${metric.key}"
+          data-entity="${metric.entity || ''}"
+          @click=${this._handleMetricClick}
+        >
           ${metric.icon
             ? html`<ha-icon class="icon" icon="${metric.icon}"></ha-icon>`
             : html`<span class="icon placeholder"></span>`}
@@ -977,6 +1014,19 @@ class HaSolarCard extends LitElement {
           ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
         </div>`
       : nothing;
+  }
+
+  private _handleMetricClick(ev: Event) {
+    const target = ev.currentTarget as HTMLElement | null;
+    if (!target) return;
+    const entityId = target.getAttribute('data-entity');
+    if (!entityId) return;
+    const moreInfo = new CustomEvent('hass-more-info', {
+      detail: { entityId },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(moreInfo);
   }
 
   private _renderForecastPanel(forecast: {
