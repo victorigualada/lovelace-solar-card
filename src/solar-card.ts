@@ -10,6 +10,8 @@ import { formatTodayDate } from './utils/date';
 import { getTodayDelta } from './services/history';
 import { getEnergyPrefs, buildDevicePowerMapping } from './services/devices';
 import { getEntityRegistry, getDeviceRegistry } from './services/registries';
+import { renderEnergyFlow } from './features/energy-flow';
+import { renderTrendGraphs } from './features/trend-graphs';
 // Ensure the visual editor is registered when this module loads
 import './solar-card-editor';
 import type { Hass, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from './types/ha';
@@ -1042,7 +1044,10 @@ class HaSolarCard extends LitElement {
 
   updated() {
     if (this._config?.show_energy_flow) {
-      this._renderEnergyFlow();
+      const container = this.shadowRoot?.getElementById('energy-flow') as HTMLElement | null;
+      renderEnergyFlow(this._hass, container, this._energyFlowEl).then((el) => {
+        this._energyFlowEl = el;
+      });
     }
     const cfg = this._config;
     const tiles: any[] = [];
@@ -1056,7 +1061,19 @@ class HaSolarCard extends LitElement {
     for (const entityId of Array.from(merged)) {
       tiles.push({ type: 'tile', entity: entityId, features: [ { type: 'trend-graph', hours_to_show: defHours } ] });
     }
-    if (tiles.length) this._renderTrendGraphs(tiles);
+    if (tiles.length) {
+      const container = this.shadowRoot?.getElementById('graphs-section') as HTMLElement | null;
+      renderTrendGraphs({
+        hass: this._hass,
+        container,
+        tileConfigs: tiles,
+        existing: this._trendGraphEls,
+        ensureRegistriesForNames: () => this._ensureRegistriesForNames(),
+        stripDeviceFromName: (name: string, entityId?: string) => this._stripDeviceFromName(name, entityId),
+      }).then((els) => {
+        if (els) this._trendGraphEls = els;
+      });
+    }
   }
 
   _onDevicesClick = (ev: Event) => {
@@ -1419,71 +1436,7 @@ class HaSolarCard extends LitElement {
     return map[cond] || 'mdi:weather-partly-cloudy';
   }
 
-  async _renderEnergyFlow() {
-    const container = this.shadowRoot?.getElementById('energy-flow') as HTMLElement | null;
-    if (!container) return;
-    // Reuse existing element if possible
-    if (this._energyFlowEl && this._energyFlowEl.parentElement === container) {
-      (this._energyFlowEl as HassAware).hass = this._hass;
-      return;
-    }
-    let el: HTMLElement | null = null;
-    try {
-      const helpers = await window.loadCardHelpers?.();
-      if (helpers?.createCardElement) {
-        el = helpers.createCardElement({ type: 'energy-sankey' });
-      }
-    } catch (_e) {
-      // ignore, try fallback below
-    }
-    if (!el) {
-      el = document.createElement('hui-energy-sankey-card');
-      (el as HassAware).setConfig?.({ type: 'energy-sankey' });
-    }
-    (el as HassAware).hass = this._hass;
-    el.style.setProperty('--row-size', '6');
-    container.innerHTML = '';
-    container.appendChild(el);
-    this._energyFlowEl = el;
-  }
-
-  async _renderTrendGraphs(tileConfigs: any[]) {
-    // Ensure registries are available so we can resolve device names for stripping
-    await this._ensureRegistriesForNames();
-    const container = this.shadowRoot?.getElementById('graphs-section') as HTMLElement | null;
-    if (!container || !tileConfigs?.length) return;
-    // If the count matches, just update hass to avoid rebuilding
-    if (Array.isArray(this._trendGraphEls) && this._trendGraphEls.length === tileConfigs.length) {
-      for (const el of this._trendGraphEls) {
-        try { (el as HassAware).hass = this._hass; } catch (_e) { /* ignore */ }
-      }
-      return;
-    }
-    container.innerHTML = '';
-    this._trendGraphEls = [];
-    for (const cfg of tileConfigs) {
-      if (!cfg) continue;
-      let el: HTMLElement | null = null;
-      const ent = (cfg as any).entity as string | undefined;
-      // Prefer the entity's friendly name as the tile title, unless user overrides
-      let friendly = ent && this._hass?.states?.[ent]?.attributes?.friendly_name;
-      const tileConfig = { type: 'tile', ...cfg } as any;
-      if (!('name' in tileConfig) && friendly) tileConfig.name = this._stripDeviceFromName(String(friendly), ent);
-      try {
-        const helpers = await window.loadCardHelpers?.();
-        if (helpers?.createCardElement) {
-          el = helpers.createCardElement(tileConfig);
-        }
-      } catch (_e) { /* ignore */ }
-      if (!el) {
-        el = document.createElement('hui-tile-card');
-        (el as HassAware).setConfig?.(tileConfig);
-      }
-      (el as HassAware).hass = this._hass;
-      container.appendChild(el);
-      this._trendGraphEls.push(el);
-    }
-  }
+  // Feature renderers moved to src/features/*
 
   private async _ensureRegistriesForNames() {
     if (!this._hass) return;
