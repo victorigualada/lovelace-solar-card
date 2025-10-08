@@ -4,16 +4,22 @@
 import { LitElement, html, css, nothing, svg } from 'lit';
 import { navigate } from 'custom-card-helpers';
 import { localize } from './localize/localize';
+import { escapeHtml, formatNumberLocale } from './utils/format';
+import { entityDisplay } from './utils/entity';
+import { formatTodayDate } from './utils/date';
+import { getTodayDelta } from './services/history';
+import { getEnergyPrefs, buildDevicePowerMapping } from './services/devices';
+import { getEntityRegistry, getDeviceRegistry } from './services/registries';
 // Ensure the visual editor is registered when this module loads
 import './solar-card-editor';
-import type { Hass, HassEntity, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from './types/ha';
+import type { Hass, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from './types/ha';
 import type {
   SolarCardConfig,
   DisplayValue,
   DeviceBadgeItem,
   SolarCardTotalsMetric,
 } from './types/solar-card-config';
-import type { StatisticsDuringPeriod, HistoryPeriodResponse } from './types/stats';
+import type { StatisticsDuringPeriod } from './types/stats';
 type HassAware = HTMLElement & { hass?: Hass | null; setConfig?: (cfg: unknown) => void };
 
 declare global {
@@ -39,39 +45,7 @@ window.customCards.push({
   documentationURL: 'https://github.com/victorigualada/lovelace-solar-card',
 });
 
-const UNAVAILABLE_STATES = new Set(['unknown', 'unavailable', 'none']);
-
-function escapeHtml(str: unknown): string {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function formatNumberLocale(value: unknown, hass: Hass | null, options: Intl.NumberFormatOptions = {}): string {
-  if (value === null || value === undefined || value === '') return '—';
-  const num = Number(value);
-  if (Number.isNaN(num)) return String(value);
-  const locale = hass?.locale?.language || hass?.language || navigator.language || 'en';
-  try {
-    return new Intl.NumberFormat(locale, options).format(num);
-  } catch (_e) {
-    return String(num);
-  }
-}
-
-function entityDisplay(hass: Hass | null, entityId?: string | null): DisplayValue {
-  if (!entityId) return { value: '—', unit: '' };
-  const stateObj = hass?.states?.[entityId as string] as HassEntity | undefined;
-  if (!stateObj) return { value: '—', unit: '' };
-  const unit = stateObj.attributes.unit_of_measurement || '';
-  const state = stateObj.state;
-  if (UNAVAILABLE_STATES.has(state)) return { value: '—', unit };
-  const value = formatNumberLocale(state, hass, { maximumFractionDigits: 2 });
-  return { value, unit };
-}
+// helpers moved to utils (format/entity)
 
 class HaSolarCard extends LitElement {
   private _boundDeviceRowClick?: WeakSet<HTMLElement>;
@@ -1040,7 +1014,7 @@ class HaSolarCard extends LitElement {
       <div class="forecast" id="forecast">
         <div>
           <div class="title">${forecast.title}</div>
-          <div class="subtle">${this._formatTodayDate()}</div>
+          <div class="subtle">${formatTodayDate(this._hass)}</div>
           <div class="temp">${forecast.majorValue} ${forecast.majorUnit}</div>
           <div class="subtle">${forecast.minor}</div>
         </div>
@@ -1101,7 +1075,7 @@ class HaSolarCard extends LitElement {
     this._devicesRefreshing = true;
     try {
       // Refresh Energy preferences + build power entity map for live updates
-      const prefs = await this._hass!.callWS<EnergyPreferences>({ type: 'energy/get_prefs' });
+      const prefs = await getEnergyPrefs(this._hass!);
       this._deviceList = Array.isArray(prefs?.device_consumption) ? prefs.device_consumption : [];
       await this._ensureDevicePowerMap();
       this._devicesLastFetch = Date.now();
@@ -1124,59 +1098,12 @@ class HaSolarCard extends LitElement {
 
   async _ensureDevicePowerMap() {
     if (!this._hass) return;
-    if (!this._entityRegistry) {
-      this._entityRegistry = await this._hass!.callWS<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' });
-    }
-    if (!this._deviceRegistry) {
-      try {
-        this._deviceRegistry = await this._hass!.callWS<DeviceRegistryEntry[]>({ type: 'config/device_registry/list' });
-      } catch (_e) {
-        this._deviceRegistry = [];
-      }
-    }
-    const reg = this._entityRegistry || [];
-    const dreg = this._deviceRegistry || [];
-    // Build quick lookup maps
-    const entityRegById: Record<string, EntityRegistryEntry> = {};
-    for (const ent of reg) {
-      if (ent?.entity_id) entityRegById[ent.entity_id] = ent;
-    }
-    const deviceIconById: Record<string, string> = {};
-    for (const dev of dreg) {
-      if (dev?.id && dev?.icon) deviceIconById[dev.id] = dev.icon;
-    }
-    const byDevice = {};
-    for (const ent of reg) {
-      // Map ALL entity ids for each device for icon heuristics
-      if (!ent.entity_id) continue;
-      if (!ent.device_id) continue;
-      (byDevice[ent.device_id] = byDevice[ent.device_id] || []).push(ent.entity_id);
-    }
-    const map = {};
-    const statToDevice = {};
-    const deviceEntities = {};
-    const states = this._hass.states || {};
-    for (const dev of this._deviceList ?? []) {
-      const statId = dev.stat_consumption;
-      if (!statId || !statId.includes('.')) continue;
-      const entry = reg.find((e) => e.entity_id === statId);
-      const deviceId = entry?.device_id;
-      if (!deviceId) continue;
-      const candidates = (byDevice[deviceId] || []).filter((eid) => {
-        const st = states[eid];
-        const dc = st?.attributes?.device_class;
-        const unit = st?.attributes?.unit_of_measurement || '';
-        return dc === 'power' && /k?W/i.test(unit);
-      });
-      if (candidates.length) map[statId] = candidates;
-      statToDevice[statId] = deviceId;
-      deviceEntities[deviceId] = byDevice[deviceId] || [];
-    }
-    this._devicePowerMap = map;
-    this._statToDeviceId = statToDevice;
-    this._deviceEntitiesMap = deviceEntities;
-    this._deviceIconById = deviceIconById;
-    this._entityRegistryByEntityId = entityRegById;
+    const res = await buildDevicePowerMapping(this._hass!, this._deviceList);
+    this._devicePowerMap = res.devicePowerMap;
+    this._statToDeviceId = res.statToDeviceId;
+    this._deviceEntitiesMap = res.deviceEntitiesMap;
+    this._deviceIconById = res.deviceIconById;
+    this._entityRegistryByEntityId = res.entityRegistryByEntityId;
   }
 
   _powerWattsFromState(entityId: string): number | null {
@@ -1422,7 +1349,7 @@ class HaSolarCard extends LitElement {
     // Resolve entity registry to find device for this statistic/entity
     try {
       if (!this._entityRegistry) {
-        this._entityRegistry = await this._hass!.callWS<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' });
+        this._entityRegistry = await getEntityRegistry(this._hass!);
       }
       let entityId = statId;
       // Some stats could be like 'sensor.xxx'; if not, we can't resolve
@@ -1457,16 +1384,7 @@ class HaSolarCard extends LitElement {
     window.location.assign(targetPath);
   }
 
-  _formatTodayDate(): string {
-    try {
-      const d = new Date();
-      const day = d.toLocaleDateString(this._hass?.locale?.language || undefined, { weekday: 'short' });
-      return `${day} ${d.getDate()}/${d.getMonth() + 1}`;
-    } catch (_e) {
-      const d = new Date();
-      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-    }
-  }
+  // formatTodayDate moved to utils/date.ts
 
   _weatherDisplay(
     hass: Hass | null,
@@ -1570,16 +1488,8 @@ class HaSolarCard extends LitElement {
   private async _ensureRegistriesForNames() {
     if (!this._hass) return;
     try {
-      if (!this._entityRegistry) {
-        this._entityRegistry = await this._hass!.callWS<EntityRegistryEntry[]>({ type: 'config/entity_registry/list' });
-      }
-      if (!this._deviceRegistry) {
-        try {
-          this._deviceRegistry = await this._hass!.callWS<DeviceRegistryEntry[]>({ type: 'config/device_registry/list' });
-        } catch (_e) {
-          this._deviceRegistry = [];
-        }
-      }
+      if (!this._entityRegistry) this._entityRegistry = await getEntityRegistry(this._hass!);
+      if (!this._deviceRegistry) this._deviceRegistry = await getDeviceRegistry(this._hass!);
     } catch (_e) {
       // ignore; name stripping will just use fallbacks
     }
@@ -1624,7 +1534,7 @@ class HaSolarCard extends LitElement {
       this._gridTodayCache.inflight = true;
       this._gridTodayCache.key = entityId;
       this._gridTodayCache.dateKey = dateKey;
-      this._fetchTodayDiff(entityId)
+      getTodayDelta(this._hass!, entityId)
         .then((num) => {
           const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '';
           const formatted = formatNumberLocale(num, this._hass, { maximumFractionDigits: 2 });
@@ -1659,7 +1569,7 @@ class HaSolarCard extends LitElement {
       this._yieldTodayCache.inflight = true;
       this._yieldTodayCache.key = entityId;
       this._yieldTodayCache.dateKey = dateKey;
-      this._fetchTodayDiff(entityId)
+      getTodayDelta(this._hass!, entityId)
         .then((num) => {
           const unit = this._hass?.states?.[entityId]?.attributes?.unit_of_measurement || '';
           const formatted = formatNumberLocale(num, this._hass, { maximumFractionDigits: 2 });
@@ -1679,29 +1589,7 @@ class HaSolarCard extends LitElement {
     return null;
   }
 
-  async _fetchTodayDiff(entityId: string): Promise<number> {
-    const hass = this._hass;
-    if (!hass) return 0;
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // local midnight
-    const startIso = start.toISOString();
-    const endIso = now.toISOString();
-    const path = `history/period/${startIso}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${endIso}&minimal_response`;
-    const resp = await hass.callApi<HistoryPeriodResponse>('GET', path);
-    if (!Array.isArray(resp) || !Array.isArray(resp[0]) || !resp[0].length) return 0;
-    const series = resp[0];
-    const nums = series
-      .map((pt) => {
-        const v = Number(pt.state);
-        return Number.isFinite(v) ? v : null;
-      })
-      .filter((v) => v !== null);
-    if (!nums.length) return 0;
-    const first = nums[0];
-    const last = nums[nums.length - 1];
-    const delta = last - first;
-    return delta > 0 ? delta : 0;
-  }
+  // _fetchTodayDiff moved to services/history.getTodayDelta
 }
 
 customElements.define('solar-card', HaSolarCard);
