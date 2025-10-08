@@ -14,6 +14,10 @@ import { renderEnergyFlow } from './features/energy-flow';
 import { renderTrendGraphs } from './features/trend-graphs';
 // Ensure the visual editor is registered when this module loads
 import './solar-card-editor';
+import './components/overview';
+import './components/metrics';
+import './components/forecast';
+import './components/devices-row';
 import type { Hass, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from './types/ha';
 import type {
   SolarCardConfig,
@@ -781,17 +785,40 @@ class HaSolarCard extends LitElement {
       });
     }
 
+    const todayLabels = { yieldToday: localize('card.yield_today'), gridToday: localize('card.grid_today') };
+    const deviceViewItems = devicesList.map((it) => ({
+      ...it,
+      display: `${formatNumberLocale(it.watts, this._hass, { maximumFractionDigits: 0 })} W`,
+    }));
+
     return html`
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
-          ${this._renderOverviewPanel(overview.production, overview.consumption, overview.image_url)}
-          <div class="metrics-panel">
-            ${this._renderMetricsPanel(today, totalsMetrics)}
+          <solar-overview
+            .production=${overview.production}
+            .consumption=${overview.consumption}
+            .imageUrl=${overview.image_url}
+            .productionLabel=${localize('card.production')}
+            .consumptionLabel=${localize('card.consumption')}
+            .fallback=${this._defaultPanelsSvgHtml()}
+          ></solar-overview>
+          <div class="metrics-panel" @click=${this._handleMetricClick}>
+            <solar-metrics .today=${today} .totals=${totalsMetrics} .labels=${todayLabels}></solar-metrics>
           </div>
-          ${cfg.show_solar_forecast ? this._renderForecastPanel(forecast) : nothing}
+          ${cfg.show_solar_forecast
+            ? html`<solar-forecast
+                .title=${forecast.title}
+                .icon=${forecast.icon}
+                .majorValue=${forecast.majorValue}
+                .majorUnit=${forecast.majorUnit}
+                .minor=${forecast.minor}
+                .dateText=${formatTodayDate(this._hass)}
+              ></solar-forecast>`
+            : nothing}
         </div>
-
-        ${cfg.show_top_devices && devicesList.length ? this._renderDevicesRow(devicesList) : nothing}
+        ${cfg.show_top_devices && deviceViewItems.length
+          ? html`<solar-devices-row .items=${deviceViewItems} @click=${this._onDevicesClick}></solar-devices-row>`
+          : nothing}
         ${tiles.length
           ? html`<div id="graphs-section" class="graphs-section"></div>`
           : nothing}
@@ -993,9 +1020,9 @@ class HaSolarCard extends LitElement {
   }
 
   private _handleMetricClick(ev: Event) {
-    const target = ev.currentTarget as HTMLElement | null;
-    if (!target) return;
-    const entityId = target.getAttribute('data-entity');
+    const path = (ev.composedPath?.() as EventTarget[]) || [];
+    const target = path.find((n) => (n as HTMLElement)?.getAttribute?.('data-entity')) as HTMLElement | undefined;
+    const entityId = target?.getAttribute?.('data-entity');
     if (!entityId) return;
     const moreInfo = new CustomEvent('hass-more-info', {
       detail: { entityId },
