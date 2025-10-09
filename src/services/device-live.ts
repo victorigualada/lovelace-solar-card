@@ -7,10 +7,7 @@ import { iconForDeviceByStat } from '../utils/icons';
 
 export type DeviceLiveManager = ReturnType<typeof createDeviceLiveManager>;
 
-export function createDeviceLiveManager(
-  hass: Hass,
-  onUpdate: () => void,
-) {
+export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
   let refreshing = false;
   let lastFetch = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -92,4 +89,3 @@ export function createDeviceLiveManager(
     computeTopDevicesLive,
   };
 }
-

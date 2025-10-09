@@ -12,7 +12,7 @@ export class SolarForecast extends LitElement {
       icon: { reflect: true },
       majorValue: { attribute: 'major-value' },
       majorUnit: { attribute: 'major-unit' },
-      minor: { },
+      minor: {},
       dateText: { attribute: 'date-text' },
       // Optional logic props
       hass: { attribute: false },
@@ -77,14 +77,18 @@ export class SolarForecast extends LitElement {
     }
   }
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   render() {
     if (!this.majorValue && (this.weatherEntity || this.solarForecastEntity)) {
       this._computeFromEntities();
     }
     return html` <div class="forecast-panel">
-      <style>${FORECAST_STYLE_CSS}</style>
+      <style>
+        ${FORECAST_STYLE_CSS}
+      </style>
       <div class="forecast" id="forecast">
         <div>
           <div class="title">${this.title}</div>

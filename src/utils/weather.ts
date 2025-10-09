@@ -32,4 +32,3 @@ export function weatherDisplay(
   const icon = weatherIcon(condition);
   return { temperature: temp != null ? String(temp) : null, unit, condition, icon };
 }
-

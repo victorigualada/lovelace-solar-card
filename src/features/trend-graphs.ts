@@ -40,7 +40,11 @@ export async function renderTrendGraphs(options: {
   if (!container || !tileConfigs?.length) return existing;
   if (Array.isArray(existing) && existing.length === tileConfigs.length) {
     for (const el of existing) {
-      try { (el as HassAware).hass = hass; } catch (_e) { /* ignore */ }
+      try {
+        (el as HassAware).hass = hass;
+      } catch (_e) {
+        /* ignore */
+      }
     }
     return existing;
   }
@@ -58,7 +62,9 @@ export async function renderTrendGraphs(options: {
       if (helpers?.createCardElement) {
         el = helpers.createCardElement(tileConfig);
       }
-    } catch (_e) { /* ignore */ }
+    } catch (_e) {
+      /* ignore */
+    }
     if (!el) {
       el = document.createElement('hui-tile-card');
       (el as HassAware).setConfig?.(tileConfig);
@@ -81,7 +87,7 @@ export function buildTrendTileConfigs(cfg: any): any[] {
   const defHours = Number((cfg as any)?.trend_graph_hours_to_show) || 24;
   const defDetail = Number((cfg as any)?.trend_graph_detail) || undefined;
   for (const entityId of Array.from(merged)) {
-    const features: any[] = [ { type: 'trend-graph', hours_to_show: defHours } ];
+    const features: any[] = [{ type: 'trend-graph', hours_to_show: defHours }];
     if (defDetail != null) features[0].detail = defDetail;
     tiles.push({ type: 'tile', entity: entityId, features });
   }

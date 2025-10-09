@@ -25,17 +25,19 @@ export function computeToday(
   let yieldToday: DisplayValue = { value: '—', unit: yieldUnit };
   if (cfg.total_yield_entity) {
     const num = ensureYieldFromTotalNum(cfg.total_yield_entity);
-    yieldToday = num != null
-      ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: yieldUnit }
-      : { value: '…', unit: yieldUnit };
+    yieldToday =
+      num != null
+        ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: yieldUnit }
+        : { value: '…', unit: yieldUnit };
   }
 
   let gridToday: DisplayValue = { value: '—', unit: gridUnit };
   if (cfg.total_grid_consumption_entity) {
     const num = ensureGridFromTotalNum(cfg.total_grid_consumption_entity);
-    gridToday = num != null
-      ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: gridUnit }
-      : { value: '…', unit: gridUnit };
+    gridToday =
+      num != null
+        ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: gridUnit }
+        : { value: '…', unit: gridUnit };
   }
 
   return {

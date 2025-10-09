@@ -20,4 +20,3 @@ export function computeForecast(hass: Hass | null, cfg: SolarCardConfig) {
     minor: showSolarPrimary ? localize('card.expected_forecast') : weather.condition || '',
   };
 }
-

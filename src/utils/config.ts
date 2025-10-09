@@ -61,7 +61,7 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
 export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   const merged: Record<string, any> = { ...config };
   const legacyProduction = (config as Record<string, any>)?.yield_today_entity ?? '';
-  
+
   merged.production_entity = config.production_entity ?? legacyProduction ?? '';
   merged.current_consumption_entity = config.current_consumption_entity ?? '';
   merged.image_url = config.image_url ?? '';
@@ -82,4 +82,3 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   }
   return merged as SolarCardConfig;
 }
-

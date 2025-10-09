@@ -24,9 +24,7 @@ import './components/forecast';
 import './components/devices-row';
 import type { Hass, EntityRegistryEntry } from './types/ha';
 import { openBadgeTarget } from './utils/navigation';
-import type {
-  SolarCardConfig,
-} from './types';
+import type { SolarCardConfig } from './types';
 type HassAware = HTMLElement & { hass?: Hass | null; setConfig?: (cfg: unknown) => void };
 
 declare global {
@@ -61,7 +59,7 @@ class HaSolarCard extends LitElement {
   private _entityRegistry: EntityRegistryEntry[] | null;
   private _deviceManager: DeviceLiveManager | null;
   private _lastLang?: string | null;
-  
+
   constructor() {
     super();
     this._config = { type: 'custom:solar-card' } as SolarCardConfig;
@@ -91,7 +89,7 @@ class HaSolarCard extends LitElement {
   static buildCandidateLists(hass?: Hass, entities?: string[], entitiesFallback?: string[]) {
     return buildCandidatesUtil(hass, entities, entitiesFallback);
   }
-  
+
   static getStubConfig(hass?: Hass, entities?: string[], entitiesFallback?: string[]) {
     return getStub(hass, entities, entitiesFallback);
   }
@@ -112,13 +110,19 @@ class HaSolarCard extends LitElement {
     }
     if (Array.isArray(this._trendGraphEls)) {
       for (const el of this._trendGraphEls) {
-        try { (el as HassAware).hass = hass; } catch (_e) { /* ignore */ }
+        try {
+          (el as HassAware).hass = hass;
+        } catch (_e) {
+          /* ignore */
+        }
       }
     }
     if (this._gridKwhEl) {
       try {
         (this._gridKwhEl as HassAware).hass = hass;
-      } catch (_e) { /* ignore */ }
+      } catch (_e) {
+        /* ignore */
+      }
     }
     // No localStorage writes: localize() reads HA language directly now.
     // Keep a cached value if we ever need to react to language changes.
@@ -231,8 +235,8 @@ class HaSolarCard extends LitElement {
     const today = computeToday(
       this._hass,
       cfg,
-      (id) => this._hass ? ensureTodayDelta(this._hass, id, () => this.requestUpdate()) : null,
-      (id) => this._hass ? ensureTodayDelta(this._hass, id, () => this.requestUpdate()) : null,
+      (id) => (this._hass ? ensureTodayDelta(this._hass, id, () => this.requestUpdate()) : null),
+      (id) => (this._hass ? ensureTodayDelta(this._hass, id, () => this.requestUpdate()) : null),
     );
     const totalsMetrics = computeTotalsMetrics(this._hass, cfg);
     const forecast = computeForecast(this._hass, cfg);
@@ -248,7 +252,8 @@ class HaSolarCard extends LitElement {
     return html`
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
-          <solar-overview style="display: contents"
+          <solar-overview
+            style="display: contents"
             .hass=${this._hass}
             .production=${overview.production}
             .consumption=${overview.consumption}
@@ -260,10 +265,16 @@ class HaSolarCard extends LitElement {
             image-fallback
           ></solar-overview>
           <div class="metrics-panel">
-            <solar-metrics .today=${today} .totals=${totalsMetrics} .labels=${todayLabels} @metric-click=${this._onMetricComponentClick}></solar-metrics>
+            <solar-metrics
+              .today=${today}
+              .totals=${totalsMetrics}
+              .labels=${todayLabels}
+              @metric-click=${this._onMetricComponentClick}
+            ></solar-metrics>
           </div>
           ${cfg.show_solar_forecast
-            ? html`<solar-forecast style="display: contents"
+            ? html`<solar-forecast
+                style="display: contents"
                 .hass=${this._hass}
                 .title=${forecast.title}
                 .icon=${forecast.icon}
@@ -277,11 +288,13 @@ class HaSolarCard extends LitElement {
             : nothing}
         </div>
         ${cfg.show_top_devices && devicesList.length
-          ? html`<solar-devices-row .items=${devicesList} .hass=${this._hass} @device-selected=${this._onDeviceSelected}></solar-devices-row>`
+          ? html`<solar-devices-row
+              .items=${devicesList}
+              .hass=${this._hass}
+              @device-selected=${this._onDeviceSelected}
+            ></solar-devices-row>`
           : nothing}
-        ${tiles.length
-          ? html`<div id="graphs-section" class="graphs-section"></div>`
-          : nothing}
+        ${tiles.length ? html`<div id="graphs-section" class="graphs-section"></div>` : nothing}
         ${cfg.show_energy_flow
           ? html`<div id="energy-section" class="energy-section"><div id="energy-flow"></div></div>`
           : nothing}

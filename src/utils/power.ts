@@ -11,4 +11,3 @@ export function powerWattsFromState(hass: Hass | null, entityId: string): number
   if (!isFinite(watts)) return null;
   return watts;
 }
-

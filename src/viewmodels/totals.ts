@@ -55,4 +55,3 @@ export function computeTotalsMetrics(hass: Hass | null, cfg: SolarCardConfig): T
     };
   });
 }
-

@@ -73,4 +73,3 @@ export function iconForDeviceByStat(
   }
   return 'mdi:power-plug';
 }
-

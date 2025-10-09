@@ -28,11 +28,7 @@ export async function getTodayDelta(hass: Hass, entityId: string): Promise<numbe
 type CacheEntry = { dateKey: string; inflight: boolean; value: number | null };
 const todayCache: Record<string, CacheEntry> = {};
 
-export function ensureTodayDelta(
-  hass: Hass,
-  entityId: string,
-  onUpdated?: () => void,
-): number | null {
+export function ensureTodayDelta(hass: Hass, entityId: string, onUpdated?: () => void): number | null {
   if (!entityId) return null;
   const dateKey = new Date().toDateString();
   const entry = todayCache[entityId];
@@ -50,4 +46,3 @@ export function ensureTodayDelta(
     });
   return null;
 }
-

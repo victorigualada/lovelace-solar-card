@@ -38,4 +38,3 @@ export async function openBadgeTarget(
     navigateToPath(host, `/developer-tools/statistics?statistic_id=${encodeURIComponent(statId)}`);
   }
 }
-

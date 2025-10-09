@@ -23,4 +23,3 @@ export async function getDeviceRegistry(hass: Hass): Promise<DeviceRegistryEntry
   }
   return deviceRegistryCache.data;
 }
-

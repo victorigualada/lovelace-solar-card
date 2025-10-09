@@ -14,4 +14,3 @@ export function entityDisplay(hass: Hass | null, entityId?: string | null): Disp
   const value = formatNumberLocale(state, hass, { maximumFractionDigits: 2 });
   return { value, unit };
 }
-

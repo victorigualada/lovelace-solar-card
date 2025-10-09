@@ -31,4 +31,3 @@ export async function renderEnergyFlow(
   container.appendChild(el);
   return el;
 }
-

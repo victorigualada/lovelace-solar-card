@@ -9,11 +9,7 @@ export function escapeHtml(str: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
-export function formatNumberLocale(
-  value: unknown,
-  hass: Hass | null,
-  options: Intl.NumberFormatOptions = {},
-): string {
+export function formatNumberLocale(value: unknown, hass: Hass | null, options: Intl.NumberFormatOptions = {}): string {
   if (value === null || value === undefined || value === '') return '—';
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
@@ -24,4 +20,3 @@ export function formatNumberLocale(
     return String(num);
   }
 }
-

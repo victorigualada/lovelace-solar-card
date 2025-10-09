@@ -13,10 +13,19 @@ export class SolarMetrics extends LitElement {
   }
 
   today!: { yieldToday: DisplayValue; gridToday: DisplayValue; yieldEntity: string | null; gridEntity: string | null };
-  totals!: Array<{ key: string; label: string; value: string; unit: string; icon: string | null; entity: string | null }>;
+  totals!: Array<{
+    key: string;
+    label: string;
+    value: string;
+    unit: string;
+    icon: string | null;
+    entity: string | null;
+  }>;
   labels: { yieldToday: string; gridToday: string } = { yieldToday: 'Yield today', gridToday: 'Grid today' };
 
-  createRenderRoot() { return this; }
+  createRenderRoot() {
+    return this;
+  }
 
   private _emitMetricClick = (ev: Event) => {
     const attr = 'data-entity';
@@ -30,7 +39,10 @@ export class SolarMetrics extends LitElement {
       let n = ev.currentTarget as HTMLElement | null;
       if (!n) n = ev.target as HTMLElement | null;
       while (n) {
-        if (n.getAttribute && n.getAttribute(attr)) { hit = n; break; }
+        if (n.getAttribute && n.getAttribute(attr)) {
+          hit = n;
+          break;
+        }
         n = n.parentElement;
       }
     }
@@ -59,11 +71,19 @@ export class SolarMetrics extends LitElement {
         <div class="value smaller">${t.gridToday.value}${t.gridToday.unit ? html` ${t.gridToday.unit}` : ''}</div>
       </div>`,
       ...totals.map(
-        (m) => html`<div class="metric metric-bottom" data-metric-key="${m.key}" data-entity="${m.entity || ''}" @click=${this._emitMetricClick}>
-          ${m.icon ? html`<ha-icon class="icon" icon="${m.icon}"></ha-icon>` : html`<span class="icon placeholder"></span>`}
-          <div class="label">${m.label}</div>
-          <div class="value smaller">${m.value}${m.unit ? html` ${m.unit}` : nothing}</div>
-        </div>`,
+        (m) =>
+          html`<div
+            class="metric metric-bottom"
+            data-metric-key="${m.key}"
+            data-entity="${m.entity || ''}"
+            @click=${this._emitMetricClick}
+          >
+            ${m.icon
+              ? html`<ha-icon class="icon" icon="${m.icon}"></ha-icon>`
+              : html`<span class="icon placeholder"></span>`}
+            <div class="label">${m.label}</div>
+            <div class="value smaller">${m.value}${m.unit ? html` ${m.unit}` : nothing}</div>
+          </div>`,
       ),
     ];
     const columns = Math.min(Math.max(items.length, 1), 4);
@@ -75,7 +95,9 @@ export class SolarMetrics extends LitElement {
     }, []);
     return grouped.length
       ? html`
-          <style>${METRICS_STYLE_CSS}</style>
+          <style>
+            ${METRICS_STYLE_CSS}
+          </style>
           <div class="metrics-grid" style="--metrics-cols: ${columns}">
             ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
           </div>

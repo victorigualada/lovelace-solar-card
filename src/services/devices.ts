@@ -1,9 +1,4 @@
-import type {
-  Hass,
-  EntityRegistryEntry,
-  DeviceRegistryEntry,
-  EnergyPreferences,
-} from '../types/ha';
+import type { Hass, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from '../types/ha';
 
 import { getEntityRegistry, getDeviceRegistry } from './registries';
 
@@ -86,4 +81,3 @@ export async function buildDevicePowerMapping(
 
   return { devicePowerMap, statToDeviceId, deviceEntitiesMap, entityRegistryByEntityId, deviceIconById };
 }
-

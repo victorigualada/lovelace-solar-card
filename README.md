@@ -30,7 +30,6 @@
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=victorigualada&repository=lovelace-solar-card&category=plugin)
 
-
 ### Manual
 
 1. Download `solar-card.js` from the [latest release](https://github.com/victorigualada/lovelace-solar-card/releases)
@@ -74,14 +73,14 @@ totals_metrics:
     label: Battery throughput
 
 # Options
-show_energy_flow: true                                  # show built‑in Energy Sankey
-show_top_devices: true                                  # show devices row
-top_devices_max: 4                                      # 1–8
-trend_graph_entities:                                   # optional list of tile trend graphs
+show_energy_flow: true # show built‑in Energy Sankey
+show_top_devices: true # show devices row
+top_devices_max: 4 # 1–8
+trend_graph_entities: # optional list of tile trend graphs
   - sensor.grid_energy_daily
   - sensor.pv_yield_today
-show_solar_forecast: true                               # enable forecast column
-weather_entity: weather.home                            # optional (shows weather)
+show_solar_forecast: true # enable forecast column
+weather_entity: weather.home # optional (shows weather)
 solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forecast)
 ```
 

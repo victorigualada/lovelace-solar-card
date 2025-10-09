@@ -9,4 +9,3 @@ export function computeOverview(hass: Hass | null, cfg: SolarCardConfig) {
     image_url: cfg.image_url || '',
   };
 }
-

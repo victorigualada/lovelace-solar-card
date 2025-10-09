@@ -4,7 +4,6 @@ import type { DisplayValue } from '../types/solar-card-config';
 import { entityDisplay } from '../utils/entity';
 import { OVERVIEW_STYLE_CSS } from '../styles/overview.styles';
 
-
 export class SolarOverview extends LitElement {
   static get properties() {
     return {
@@ -36,7 +35,10 @@ export class SolarOverview extends LitElement {
     const rows = Array.from({ length: 3 });
     const cols = Array.from({ length: 6 });
     const cells = rows.flatMap((_r, r) =>
-      cols.map((_c, c) => svg`<rect x="${8 + c * 31}" y="${8 + r * 36}" width="28" height="28" rx="3" fill="rgba(255,255,255,0.25)" />`),
+      cols.map(
+        (_c, c) =>
+          svg`<rect x="${8 + c * 31}" y="${8 + r * 36}" width="28" height="28" rx="3" fill="rgba(255,255,255,0.25)" />`,
+      ),
     );
     return html`
       <svg viewBox="0 0 240 200" part="image" aria-hidden="true">
@@ -71,7 +73,9 @@ export class SolarOverview extends LitElement {
       cons = entityDisplay(this.hass, this.consumptionEntity);
     }
     return html`
-      <style>${OVERVIEW_STYLE_CSS}</style>
+      <style>
+        ${OVERVIEW_STYLE_CSS}
+      </style>
       <div class="overview-panel">
         <div class="content">
           <div class="metric">
