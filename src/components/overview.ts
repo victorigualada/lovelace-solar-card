@@ -2,6 +2,8 @@ import { LitElement, html, svg } from 'lit';
 import type { Hass } from '../types/ha';
 import type { DisplayValue } from '../types/solar-card-config';
 import { entityDisplay } from '../utils/entity';
+import { OVERVIEW_STYLE_CSS } from '../styles/overview.styles';
+
 
 export class SolarOverview extends LitElement {
   static get properties() {
@@ -69,6 +71,8 @@ export class SolarOverview extends LitElement {
       cons = entityDisplay(this.hass, this.consumptionEntity);
     }
     return html`
+      <style>${OVERVIEW_STYLE_CSS}</style>
+      <style>${OVERVIEW_STYLE_CSS}</style>
       <div class="overview-panel">
         <div class="content">
           <div class="metric">

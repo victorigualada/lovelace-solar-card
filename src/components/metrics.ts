@@ -1,4 +1,5 @@
 import { LitElement, html, nothing } from 'lit';
+import { METRICS_STYLE_CSS } from '../styles/metrics.styles';
 
 type DisplayValue = { value: string; unit: string };
 
@@ -73,9 +74,12 @@ export class SolarMetrics extends LitElement {
       return acc;
     }, []);
     return grouped.length
-      ? html` <div class="metrics-grid" style="--metrics-cols: ${columns}">
-          ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
-        </div>`
+      ? html`
+          <style>${METRICS_STYLE_CSS}</style>
+          <div class="metrics-grid" style="--metrics-cols: ${columns}">
+            ${grouped.map((columnItems) => html`<div class="metric-column">${columnItems}</div>`)}
+          </div>
+        `
       : nothing;
   }
 }

@@ -3,6 +3,8 @@ import type { Hass } from '../types/ha';
 import { entityDisplay } from '../utils/entity';
 import { formatTodayDate } from '../utils/date';
 
+import { FORECAST_STYLE_CSS } from '../styles/forecast.styles';
+
 export class SolarForecast extends LitElement {
   static get properties() {
     return {
@@ -82,6 +84,7 @@ export class SolarForecast extends LitElement {
       this._computeFromEntities();
     }
     return html` <div class="forecast-panel">
+      <style>${FORECAST_STYLE_CSS}</style>
       <div class="forecast" id="forecast">
         <div>
           <div class="title">${this.title}</div>

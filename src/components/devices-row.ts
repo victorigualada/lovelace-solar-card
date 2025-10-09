@@ -1,6 +1,7 @@
 import { LitElement, html } from 'lit';
 import type { Hass } from '../types/ha';
 import { formatNumberLocale } from '../utils/format';
+import { DEVICES_STYLE_CSS } from '../styles/devices-row.styles';
 
 export class SolarDevicesRow extends LitElement {
   static get properties() {
@@ -33,9 +34,11 @@ export class SolarDevicesRow extends LitElement {
     if (statId) this.dispatchEvent(new CustomEvent('device-selected', { detail: { statId }, bubbles: true, composed: true }));
   };
 
+
   render() {
     const list = Array.isArray(this.items) ? this.items : [];
     return html` <div class="devices-row" id="devices-row">
+      <style>${DEVICES_STYLE_CSS}</style>
       <div class="badges">
         ${list.map(
           (it) => html`<div class="badge" role="listitem" data-stat-id="${it.id}" @click=${this._onBadgeClick}>

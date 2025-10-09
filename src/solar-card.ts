@@ -248,7 +248,7 @@ class HaSolarCard extends LitElement {
     return html`
       <ha-card>
         <div class="container${cfg.show_solar_forecast ? ' has-forecast' : ''}">
-          <solar-overview
+          <solar-overview style="display: contents"
             .hass=${this._hass}
             .production=${overview.production}
             .consumption=${overview.consumption}
@@ -258,13 +258,12 @@ class HaSolarCard extends LitElement {
             .productionLabel=${localize('card.production')}
             .consumptionLabel=${localize('card.consumption')}
             image-fallback
-            style="display: contents"
           ></solar-overview>
           <div class="metrics-panel">
             <solar-metrics .today=${today} .totals=${totalsMetrics} .labels=${todayLabels} @metric-click=${this._onMetricComponentClick}></solar-metrics>
           </div>
           ${cfg.show_solar_forecast
-            ? html`<solar-forecast
+            ? html`<solar-forecast style="display: contents"
                 .hass=${this._hass}
                 .title=${forecast.title}
                 .icon=${forecast.icon}
@@ -274,7 +273,6 @@ class HaSolarCard extends LitElement {
                 .dateText=${formatTodayDate(this._hass)}
                 .weatherEntity=${cfg.weather_entity}
                 .solarForecastEntity=${cfg.solar_forecast_today_entity}
-                style="display: contents"
               ></solar-forecast>`
             : nothing}
         </div>
