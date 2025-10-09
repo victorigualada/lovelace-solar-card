@@ -56,9 +56,8 @@
   },
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
-    "build": "npm run rollup",
+    "build": "rollup -c",
     "lint": "eslint src .github --ext .js,.ts,.yaml,.yml",
-    "lint:fix": "eslint src --ext .ts --fix && prettier --write \"src/**/*.{ts,json}\" \"**/*.md\" \"**/*.{yaml,yml}\"",
-    "rollup": "rollup -c"
+    "lint:fix": "eslint src --ext .ts --fix && prettier --write \"src/**/*.{ts,json}\" \"**/*.md\" \"**/*.{yaml,yml}\""
   }
 }

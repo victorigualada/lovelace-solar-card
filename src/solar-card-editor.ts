@@ -190,9 +190,7 @@ export class HaSolarCardEditor extends LitElement {
       { name: 'total_grid_consumption_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } },
     ];
     // Weather forecast section
-    const weatherToggle = [
-      { name: 'show_solar_forecast', selector: { boolean: {} } },
-    ];
+    const weatherToggle = [{ name: 'show_solar_forecast', selector: { boolean: {} } }];
     const weatherOptions = showSolarForecast
       ? [
           { name: 'weather_entity', selector: { entity: { domain: 'weather' } } },
@@ -203,13 +201,9 @@ export class HaSolarCardEditor extends LitElement {
         ]
       : [];
     // Top consuming devices section
-    const topDevicesToggle = [
-      { name: 'show_top_devices', selector: { boolean: {} } },
-    ];
+    const topDevicesToggle = [{ name: 'show_top_devices', selector: { boolean: {} } }];
     const topDevicesOptions = showTopDevices
-      ? [
-          { name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } },
-        ]
+      ? [{ name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } }]
       : [];
     // Trend graphs section (includes legacy single entity)
     const trend = [
@@ -217,9 +211,7 @@ export class HaSolarCardEditor extends LitElement {
       { name: 'trend_graph_hours_to_show', selector: { number: { min: 1, max: 168, mode: 'box' } } },
     ];
     // Sankey section
-    const sankey = [
-      { name: 'show_energy_flow', selector: { boolean: {} } },
-    ];
+    const sankey = [{ name: 'show_energy_flow', selector: { boolean: {} } }];
     return { overview, totals, weatherToggle, weatherOptions, topDevicesToggle, topDevicesOptions, trend, sankey };
   }
 
@@ -340,9 +332,7 @@ export class HaSolarCardEditor extends LitElement {
               handle-selector=".metric-handle"
               @item-moved=${this._onMetricReorder}
             >
-              <div class="metrics-list">
-                ${metrics.map((metric, index) => this._renderMetricItem(metric, index))}
-              </div>
+              <div class="metrics-list">${metrics.map((metric, index) => this._renderMetricItem(metric, index))}</div>
             </ha-sortable>`
           : nothing}
         ${showEmpty ? html`<div class="metrics-empty">${localize('editor.metrics_empty')}</div>` : nothing}
@@ -431,12 +421,7 @@ export class HaSolarCardEditor extends LitElement {
     const label = rawLabel.trim() ? rawLabel : undefined;
     const unit = typeof metric?.unit === 'string' && metric.unit ? metric.unit : undefined;
     const icon = typeof metric?.icon === 'string' && metric.icon ? metric.icon : undefined;
-    const baseId =
-      typeof metric?.id === 'string' && metric.id
-        ? metric.id
-        : entity
-          ? entity
-          : `metric-${index + 1}`;
+    const baseId = typeof metric?.id === 'string' && metric.id ? metric.id : entity ? entity : `metric-${index + 1}`;
     const normalized: SolarCardTotalsMetric = { id: baseId };
     if (entity) normalized.entity = entity;
     if (label) normalized.label = label;
@@ -477,11 +462,7 @@ export class HaSolarCardEditor extends LitElement {
     const unit = typeof metric.unit === 'string' && metric.unit.trim() ? metric.unit.trim() : undefined;
     const icon = typeof metric.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : undefined;
     const baseId =
-      typeof metric.id === 'string' && metric.id
-        ? metric.id
-        : entity
-          ? entity
-          : this._generateMetricId(index);
+      typeof metric.id === 'string' && metric.id ? metric.id : entity ? entity : this._generateMetricId(index);
     const result: SolarCardTotalsMetric = { id: baseId };
     if (entity) result.entity = entity;
     if (label) result.label = label;
