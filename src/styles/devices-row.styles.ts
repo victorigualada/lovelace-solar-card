@@ -17,6 +17,7 @@ export const DEVICES_STYLE_CSS = `
     align-items: stretch;
     width: 100%;
     cursor: pointer;
+    flex-wrap: wrap;
   }
 
   .badge {
@@ -58,9 +59,14 @@ export const DEVICES_STYLE_CSS = `
       color-mix(in srgb, var(--_accent-color) var(--_border-mix), transparent)
     );
     white-space: nowrap;
-    width: 100%;
-    max-width: var(--solar-badge-max-width, 420px);
-    min-width: 0;
+    /* Equal width per configured max badge count */
+    --_count: var(--solar-badge-max-count, 4);
+    --_gap: var(--solar-badges-gap, 12px);
+    --badge-basis: calc((100% - ((var(--_count) - 1) * var(--_gap))) / var(--_count));
+    flex: 0 0 var(--badge-basis);
+    min-width: 150px;
+    width: auto;
+    /* Do not override the min-width; honor 150px on small screens */
     overflow: hidden;
     cursor: pointer;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -201,14 +207,13 @@ export const DEVICES_STYLE_CSS = `
 
   @container (max-width: 900px) {
     .badges { 
-      flex-wrap: wrap; 
       justify-content: space-evenly; 
     }
- 
-    .badge { max-width: 40%; }
   }
 
-  @container (max-width: 280px) { 
-    .badge { max-width: 100%; } 
+  /* Compact mode: hide device name under 500px containers */
+  @container (max-width: 500px) {
+    .badge { grid-template-columns: auto auto; min-width: 75px }
+    .badge .name { display: none; }
   }
 `;

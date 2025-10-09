@@ -117,11 +117,16 @@ export class SolarDevicesRow extends LitElement {
             >
               <ha-icon icon="${it.icon || 'mdi:power-plug'}"></ha-icon>
               <span class="name">${it.name}</span>
-              <span class="value"
-                >${it.watts != null
-                  ? `${formatNumberLocale(it.watts, this.hass, { maximumFractionDigits: 0 })} W`
-                  : ''}</span
-              >
+              <span class="value">
+                ${it.watts != null
+                  ? (it.watts as number) > 999
+                    ? `${formatNumberLocale((it.watts as number) / 1000, this.hass, {
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 1,
+                      })} kW`
+                    : `${formatNumberLocale(it.watts as number, this.hass, { maximumFractionDigits: 0 })} W`
+                  : ''}
+              </span>
             </div>`;
           },
         )}
