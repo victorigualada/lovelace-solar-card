@@ -17,6 +17,27 @@ export class SolarMetrics extends LitElement {
 
   createRenderRoot() { return this; }
 
+  private _emitMetricClick = (ev: Event) => {
+    const attr = 'data-entity';
+    let hit: HTMLElement | undefined;
+    const anyEv = ev as any;
+    if (typeof anyEv.composedPath === 'function') {
+      const path = anyEv.composedPath() as EventTarget[];
+      hit = path.find((n) => (n as HTMLElement)?.getAttribute?.(attr)) as HTMLElement | undefined;
+    }
+    if (!hit) {
+      let n = ev.currentTarget as HTMLElement | null;
+      if (!n) n = ev.target as HTMLElement | null;
+      while (n) {
+        if (n.getAttribute && n.getAttribute(attr)) { hit = n; break; }
+        n = n.parentElement;
+      }
+    }
+    const entityId = hit?.getAttribute?.(attr) || undefined;
+    const key = hit?.getAttribute?.('data-metric-key') || undefined;
+    this.dispatchEvent(new CustomEvent('metric-click', { detail: { entityId, key }, bubbles: true, composed: true }));
+  };
+
   render() {
     const t = this.today || {
       yieldToday: { value: '—', unit: '' },
@@ -26,18 +47,18 @@ export class SolarMetrics extends LitElement {
     };
     const totals = Array.isArray(this.totals) ? this.totals : [];
     const items: unknown[] = [
-      html`<div class="metric metric-top" data-entity="${t.yieldEntity || ''}">
+      html`<div class="metric metric-top" data-entity="${t.yieldEntity || ''}" @click=${this._emitMetricClick}>
         <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
         <div class="label">${this.labels.yieldToday}</div>
         <div class="value smaller">${t.yieldToday.value}${t.yieldToday.unit ? html` ${t.yieldToday.unit}` : ''}</div>
       </div>`,
-      html`<div class="metric metric-top" data-entity="${t.gridEntity || ''}">
+      html`<div class="metric metric-top" data-entity="${t.gridEntity || ''}" @click=${this._emitMetricClick}>
         <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
         <div class="label">${this.labels.gridToday}</div>
         <div class="value smaller">${t.gridToday.value}${t.gridToday.unit ? html` ${t.gridToday.unit}` : ''}</div>
       </div>`,
       ...totals.map(
-        (m) => html`<div class="metric metric-bottom" data-metric-key="${m.key}" data-entity="${m.entity || ''}">
+        (m) => html`<div class="metric metric-bottom" data-metric-key="${m.key}" data-entity="${m.entity || ''}" @click=${this._emitMetricClick}>
           ${m.icon ? html`<ha-icon class="icon" icon="${m.icon}"></ha-icon>` : html`<span class="icon placeholder"></span>`}
           <div class="label">${m.label}</div>
           <div class="value smaller">${m.value}${m.unit ? html` ${m.unit}` : nothing}</div>
@@ -60,4 +81,3 @@ export class SolarMetrics extends LitElement {
 }
 
 customElements.define('solar-metrics', SolarMetrics);
-

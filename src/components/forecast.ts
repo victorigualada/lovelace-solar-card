@@ -1,4 +1,7 @@
 import { LitElement, html } from 'lit';
+import type { Hass } from '../types/ha';
+import { entityDisplay } from '../utils/entity';
+import { formatTodayDate } from '../utils/date';
 
 export class SolarForecast extends LitElement {
   static get properties() {
@@ -9,6 +12,10 @@ export class SolarForecast extends LitElement {
       majorUnit: { attribute: 'major-unit' },
       minor: { },
       dateText: { attribute: 'date-text' },
+      // Optional logic props
+      hass: { attribute: false },
+      weatherEntity: { attribute: 'weather-entity' },
+      solarForecastEntity: { attribute: 'solar-forecast-entity' },
     } as any;
   }
 
@@ -18,10 +25,62 @@ export class SolarForecast extends LitElement {
   majorUnit = '';
   minor = '';
   dateText = '';
+  hass: Hass | null = null;
+  weatherEntity?: string;
+  solarForecastEntity?: string;
+
+  private _iconFor(cond: string): string {
+    const map: Record<string, string> = {
+      clear: 'mdi:weather-sunny',
+      'clear-night': 'mdi:weather-night',
+      cloudy: 'mdi:weather-cloudy',
+      fog: 'mdi:weather-fog',
+      hail: 'mdi:weather-hail',
+      lightning: 'mdi:weather-lightning',
+      'lightning-rainy': 'mdi:weather-lightning-rainy',
+      partlycloudy: 'mdi:weather-partly-cloudy',
+      pouring: 'mdi:weather-pouring',
+      rainy: 'mdi:weather-rainy',
+      snowy: 'mdi:weather-snowy',
+      windy: 'mdi:weather-windy',
+      exceptional: 'mdi:alert',
+    };
+    return map[cond] || 'mdi:weather-partly-cloudy';
+  }
+
+  private _computeFromEntities() {
+    if (!this.hass) return;
+    const hasWeather = !!this.weatherEntity;
+    const hasSolarForecast = !!this.solarForecastEntity;
+    const showSolarPrimary = hasSolarForecast || !hasWeather;
+    if (!this.title) this.title = hasWeather ? 'Weather Today' : 'Solar Forecast';
+    if (hasWeather && !this.icon) {
+      const st = this.hass.states?.[this.weatherEntity!];
+      const cond = st?.state || '';
+      this.icon = this._iconFor(cond);
+    }
+    if (!this.dateText) this.dateText = formatTodayDate(this.hass);
+    if (showSolarPrimary) {
+      const disp = entityDisplay(this.hass, this.solarForecastEntity);
+      if (!this.majorValue) this.majorValue = `${disp.value}`;
+      if (!this.majorUnit) this.majorUnit = `${disp.unit || ''}`;
+      if (!this.minor) this.minor = 'Expected forecast';
+    } else {
+      const st = this.hass.states?.[this.weatherEntity!];
+      const temp = st?.attributes?.temperature;
+      const unit = st?.attributes?.temperature_unit || this.hass?.config?.unit_system?.temperature || '°C';
+      if (!this.majorValue) this.majorValue = temp != null ? String(temp) : '—';
+      if (!this.majorUnit) this.majorUnit = unit;
+      if (!this.minor) this.minor = st?.state || '';
+    }
+  }
 
   createRenderRoot() { return this; }
 
   render() {
+    if (!this.majorValue && (this.weatherEntity || this.solarForecastEntity)) {
+      this._computeFromEntities();
+    }
     return html` <div class="forecast-panel">
       <div class="forecast" id="forecast">
         <div>
@@ -39,4 +98,3 @@ export class SolarForecast extends LitElement {
 }
 
 customElements.define('solar-forecast', SolarForecast);
-
