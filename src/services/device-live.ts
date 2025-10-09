@@ -8,6 +8,8 @@ import { iconForDeviceByStat } from '../utils/icons';
 export type DeviceLiveManager = ReturnType<typeof createDeviceLiveManager>;
 
 export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
+  // Keep a mutable reference so we can update hass on every setter call
+  let haRef: Hass = hass;
   let refreshing = false;
   let lastFetch = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -24,9 +26,9 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
     if (now - lastFetch < 60_000) return;
     refreshing = true;
     try {
-      const prefs = await getEnergyPrefs(hass);
+      const prefs = await getEnergyPrefs(haRef);
       deviceList = Array.isArray(prefs?.device_consumption) ? prefs.device_consumption : [];
-      const res = await buildDevicePowerMapping(hass, deviceList);
+      const res = await buildDevicePowerMapping(haRef, deviceList);
       devicePowerMap = res.devicePowerMap;
       statToDeviceId = res.statToDeviceId;
       deviceEntitiesMap = res.deviceEntitiesMap as any;
@@ -53,14 +55,14 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
       const pEntities = devicePowerMap[statId] || [];
       let watts: number | null = null;
       for (const pe of pEntities) {
-        const val = powerWattsFromState(hass, pe);
+        const val = powerWattsFromState(haRef, pe);
         if (val == null) continue;
         if (watts == null || val > watts) {
           watts = Math.max(0, val);
         }
       }
       if (watts != null && watts > 0) {
-        const icon = iconForDeviceByStat(statId, hass, {
+        const icon = iconForDeviceByStat(statId, haRef, {
           statToDeviceId,
           deviceIconById,
           deviceEntitiesMap,
@@ -87,5 +89,8 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
     stop,
     refresh,
     computeTopDevicesLive,
+    setHass(h: Hass) {
+      haRef = h;
+    },
   };
 }

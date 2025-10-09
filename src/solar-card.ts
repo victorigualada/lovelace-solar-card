@@ -166,7 +166,13 @@ class HaSolarCard extends LitElement {
       // Re-render on locale language change to update labels
       if (!changed && prev.locale?.language !== hass.locale?.language) changed = true;
     }
+    // Ensure device badges update with HA state changes
+    // Even if watched entities above didn't change, top devices depend on live power entities
+    // discovered at runtime, so always re-render when enabled.
+    if (cfg.show_top_devices) changed = true;
     this._hass = hass;
+    // Keep device manager bound to the latest hass reference
+    this._deviceManager?.setHass(hass);
     if (changed) this.requestUpdate();
   }
 
