@@ -1,13 +1,57 @@
 import type { Hass } from '../types/ha';
 import type { EntityRegistryEntry } from '../types/ha';
+import { stateIcon } from 'custom-card-helpers';
 
 export function iconForEntity(hass: Hass | null, entityId: string): string {
   const st = hass?.states?.[entityId];
   if (!st) return 'mdi:power-plug';
   const icon = st.attributes?.icon;
   if (icon) return icon;
+  // Use HA's stateIcon which derives dynamic icons (e.g., battery level)
+  try {
+    const dyn = stateIcon(st as any);
+    if (typeof dyn === 'string' && dyn) return dyn;
+  } catch (_e) {
+    /* ignore */
+  }
   const domain = entityId.split('.')[0];
   const dc = st.attributes?.device_class;
+  // Fallback: dynamic battery icons
+  if ((domain === 'sensor' || domain === 'binary_sensor') && dc === 'battery') {
+    const s = String(st.state);
+    const num = Number(s);
+    const level = Number.isFinite(num) ? Math.max(0, Math.min(100, num)) : Number.NaN;
+    const charging = Boolean(
+      st.attributes?.charging === true ||
+        st.attributes?.battery_charging === true ||
+        String(st.attributes?.charging).toLowerCase() === 'on',
+    );
+    if (!Number.isNaN(level)) {
+      const step =
+        level >= 95
+          ? '100'
+          : level >= 85
+            ? '90'
+            : level >= 75
+              ? '80'
+              : level >= 65
+                ? '70'
+                : level >= 55
+                  ? '60'
+                  : level >= 45
+                    ? '50'
+                    : level >= 35
+                      ? '40'
+                      : level >= 25
+                        ? '30'
+                        : level >= 15
+                          ? '20'
+                          : '10';
+      if (charging) return `mdi:battery-charging-${step}`;
+      return step === '100' ? 'mdi:battery' : `mdi:battery-${step}`;
+    }
+    return 'mdi:battery';
+  }
   if (domain === 'light') return 'mdi:lightbulb';
   if (domain === 'switch') return 'mdi:power-plug';
   if (domain === 'fan') return 'mdi:fan';

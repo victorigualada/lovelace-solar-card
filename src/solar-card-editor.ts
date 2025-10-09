@@ -3,6 +3,7 @@ import { mdiDelete } from '@mdi/js';
 import type { Hass } from './types/ha';
 import { localize } from './localize/localize';
 import type { SolarCardConfig, SolarCardTotalsMetric } from './types/solar-card-config';
+import { iconForEntity } from './utils/icons';
 
 export class HaSolarCardEditor extends LitElement {
   private static readonly MAX_METRICS = 6;
@@ -12,7 +13,7 @@ export class HaSolarCardEditor extends LitElement {
     { name: 'entity', selector: { entity: {} } },
     { name: 'label', selector: { text: {} } },
     { name: 'unit', selector: { text: {} } },
-    { name: 'icon', selector: { icon: {} } },
+    { name: 'use_entity_icon', selector: { boolean: {} } },
   ];
   private _expandedMetricIds: Set<string>;
   static styles = css`
@@ -349,6 +350,7 @@ export class HaSolarCardEditor extends LitElement {
     const metricId = metric.id || `metric-${index + 1}`;
     const expanded = this._expandedMetricIds.has(metricId);
     const title = this._metricTitle(metric, index);
+    const previewIcon = this._resolveMetricPreviewIcon(metric);
     return html`
       <ha-expansion-panel
         class="metric-item"
@@ -367,8 +369,8 @@ export class HaSolarCardEditor extends LitElement {
             <ha-icon icon="mdi:drag"></ha-icon>
           </div>
           <span class="title">
-            <span class="title-icon ${metric.icon ? '' : 'placeholder'}">
-              ${metric.icon ? html`<ha-icon icon="${metric.icon}"></ha-icon>` : nothing}
+            <span class="title-icon ${previewIcon ? '' : 'placeholder'}">
+              ${previewIcon ? html`<ha-icon icon="${previewIcon}"></ha-icon>` : nothing}
             </span>
             <span>${title}</span>
           </span>
@@ -391,6 +393,18 @@ export class HaSolarCardEditor extends LitElement {
             data-index=${index}
             @value-changed=${this._onMetricValueChanged}
           ></ha-form>
+          ${metric.use_entity_icon !== false
+            ? nothing
+            : html`<div class="dependent">
+                <ha-form
+                  .hass=${this._hass}
+                  .data=${metric}
+                  .schema=${[{ name: 'icon', selector: { icon: {} } }]}
+                  .computeLabel=${this._computeMetricFieldLabel}
+                  data-index=${index}
+                  @value-changed=${this._onMetricValueChanged}
+                ></ha-form>
+              </div>`}
         </div>
       </ha-expansion-panel>
     `;
@@ -421,12 +435,14 @@ export class HaSolarCardEditor extends LitElement {
     const label = rawLabel.trim() ? rawLabel : undefined;
     const unit = typeof metric?.unit === 'string' && metric.unit ? metric.unit : undefined;
     const icon = typeof metric?.icon === 'string' && metric.icon ? metric.icon : undefined;
+    const useEntityIcon = metric?.use_entity_icon !== false; // default true
     const baseId = typeof metric?.id === 'string' && metric.id ? metric.id : entity ? entity : `metric-${index + 1}`;
     const normalized: SolarCardTotalsMetric = { id: baseId };
     if (entity) normalized.entity = entity;
     if (label) normalized.label = label;
     if (unit) normalized.unit = unit;
     if (icon) normalized.icon = icon;
+    normalized.use_entity_icon = useEntityIcon;
     return normalized;
   }
 
@@ -461,6 +477,7 @@ export class HaSolarCardEditor extends LitElement {
     const label = rawLabel.trim() ? rawLabel : undefined;
     const unit = typeof metric.unit === 'string' && metric.unit.trim() ? metric.unit.trim() : undefined;
     const icon = typeof metric.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : undefined;
+    const useEntityIcon = metric.use_entity_icon !== false; // default true
     const baseId =
       typeof metric.id === 'string' && metric.id ? metric.id : entity ? entity : this._generateMetricId(index);
     const result: SolarCardTotalsMetric = { id: baseId };
@@ -468,6 +485,8 @@ export class HaSolarCardEditor extends LitElement {
     if (label) result.label = label;
     if (unit) result.unit = unit;
     if (icon) result.icon = icon;
+    // Only persist this flag when false (to avoid writing defaults)
+    if (!useEntityIcon) (result as any).use_entity_icon = false;
     return result;
   }
 
@@ -552,6 +571,7 @@ export class HaSolarCardEditor extends LitElement {
       entity: localize('editor.metric_entity'),
       unit: localize('editor.metric_unit'),
       icon: localize('editor.metric_icon'),
+      use_entity_icon: localize('editor.metric_use_entity_icon'),
     };
     return map[schema.name] || schema.name;
   };
@@ -588,6 +608,17 @@ export class HaSolarCardEditor extends LitElement {
     const localized = localize(key);
     return localized && localized !== key ? localized : undefined;
   };
+
+  private _resolveMetricPreviewIcon(metric: SolarCardTotalsMetric): string | null {
+    const useEntityIcon = metric?.use_entity_icon !== false; // default true
+    const entityId = typeof metric?.entity === 'string' ? metric.entity : undefined;
+    if (useEntityIcon && entityId) {
+      const icon = iconForEntity(this._hass, entityId);
+      if (typeof icon === 'string' && icon) return icon;
+    }
+    const custom = typeof metric?.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : '';
+    return custom || null;
+  }
 }
 
 customElements.define('solar-card-editor', HaSolarCardEditor);

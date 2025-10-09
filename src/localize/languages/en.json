@@ -29,6 +29,7 @@
     "metric_entity": "Entity",
     "metric_unit": "Unit override (optional)",
     "metric_icon": "Icon (optional)",
+    "metric_use_entity_icon": "Use entity's icon",
     "remove_metric": "Remove metric",
     "reorder_metric": "Reorder metric",
     "section_overview": "Overview",

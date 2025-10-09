@@ -1,6 +1,7 @@
 import type { Hass } from '../types/ha';
 import type { SolarCardConfig, SolarCardTotalsMetric } from '../types/solar-card-config';
 import { entityDisplay } from '../utils/entity';
+import { iconForEntity } from '../utils/icons';
 
 export type TotalsItem = {
   key: string;
@@ -45,12 +46,22 @@ export function computeTotalsMetrics(hass: Hass | null, cfg: SolarCardConfig): T
     const label = labelForTotalsMetric(hass, metric, entityId);
     const unit = typeof metric.unit === 'string' && metric.unit ? metric.unit : display.unit;
     const key = metric.id || entityId || `metric-${index + 1}`;
+    const useEntityIcon = metric.use_entity_icon !== false; // default true
+    let icon: string | null = null;
+    if (useEntityIcon && entityId) {
+      const entityIcon = iconForEntity(hass, entityId);
+      if (typeof entityIcon === 'string' && entityIcon.trim()) icon = entityIcon.trim();
+    }
+    if (!icon) {
+      const custom = typeof metric.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : '';
+      icon = custom || null;
+    }
     return {
       key,
       label,
       value: display.value,
       unit,
-      icon: typeof metric.icon === 'string' && metric.icon.trim() ? metric.icon.trim() : null,
+      icon,
       entity: entityId || null,
     };
   });
