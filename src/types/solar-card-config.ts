@@ -23,6 +23,9 @@ export interface SolarCardTotalsMetric {
   label?: string;
   unit?: string;
   icon?: string;
+  // When true or undefined, use the entity's own icon (if any).
+  // When false, use the custom `icon` field if provided; otherwise no icon.
+  use_entity_icon?: boolean;
 }
 
 export interface DisplayValue {

@@ -23,6 +23,7 @@
     "metric_entity": "Entiteit",
     "metric_unit": "Eenheid overschrijven (optioneel)",
     "metric_icon": "Icoon (optioneel)",
+    "metric_use_entity_icon": "Pictogram van entiteit gebruiken",
     "remove_metric": "Metriek verwijderen",
     "reorder_metric": "Metriek opnieuw ordenen",
     "section_overview": "Overzicht",

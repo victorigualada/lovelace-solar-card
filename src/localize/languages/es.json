@@ -23,6 +23,7 @@
     "metric_entity": "Entidad",
     "metric_unit": "Unidad personalizada (opcional)",
     "metric_icon": "Icono (opcional)",
+    "metric_use_entity_icon": "Usar el icono de la entidad",
     "remove_metric": "Eliminar métrica",
     "reorder_metric": "Reordenar métrica",
     "section_overview": "Resumen",
