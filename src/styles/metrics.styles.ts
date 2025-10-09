@@ -19,8 +19,6 @@ export const METRICS_STYLE_CSS = `
 
   .metric { min-width: 0; }
 
-  .metric:hover { cursor: pointer; }
-
   .metric .label {
     white-space: nowrap;
     overflow: hidden;
@@ -32,6 +30,7 @@ export const METRICS_STYLE_CSS = `
 
   .metric-top,
   .metric-bottom {
+    cursor: pointer;
     display: grid;
     grid-template-columns: 24px 1fr;
     grid-template-rows: auto auto;

@@ -72,7 +72,6 @@ export class SolarOverview extends LitElement {
     }
     return html`
       <style>${OVERVIEW_STYLE_CSS}</style>
-      <style>${OVERVIEW_STYLE_CSS}</style>
       <div class="overview-panel">
         <div class="content">
           <div class="metric">
