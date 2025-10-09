@@ -17,6 +17,7 @@ export class SolarDevicesRow extends LitElement {
   private _lastIds: Set<string> = new Set();
   private _prevItems: Array<{ id: string; name: string; icon?: string; watts?: number }> = [];
   private _prevTotal = 0;
+  private _rafScheduled = false;
 
   createRenderRoot() {
     return this;
@@ -44,12 +45,22 @@ export class SolarDevicesRow extends LitElement {
   private _onAnimEnd = (ev: AnimationEvent) => {
     const el = ev.currentTarget as HTMLElement | null;
     if (!el) return;
-    if (el.classList.contains('leave')) {
+    // Only handle our leave animation end, ignore other animations
+    if (el.classList.contains('leave') && ev.animationName === 'badge-out') {
       const id = el.getAttribute('data-stat-id') || '';
       this._leaving.delete(id);
-      this.requestUpdate();
+      this._scheduleRender();
     }
   };
+
+  private _scheduleRender() {
+    if (this._rafScheduled) return;
+    this._rafScheduled = true;
+    requestAnimationFrame(() => {
+      this._rafScheduled = false;
+      this.requestUpdate();
+    });
+  }
 
   private _onBadgeClick = (ev: Event) => {
     const anyEv = ev as any;
