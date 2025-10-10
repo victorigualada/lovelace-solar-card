@@ -2,7 +2,7 @@ import type { Hass, EntityRegistryEntry } from '../types/ha';
 import type { EnergyPreferences } from '../types/ha';
 import type { DeviceBadgeItem } from '../types/solar-card-config';
 import { getEnergyPrefs, buildDevicePowerMapping } from './devices';
-import { powerWattsFromState } from '../utils/power';
+import { powerWattsFromState, formatPowerWatts } from '../utils/power';
 import { iconForDeviceByStat } from '../utils/icons';
 
 export type DeviceLiveManager = ReturnType<typeof createDeviceLiveManager>;
@@ -68,7 +68,13 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
           deviceEntitiesMap,
           entityRegistryByEntityId,
         });
-        items.push({ id: statId, name: namestr, watts, icon });
+        items.push({
+          id: statId,
+          name: namestr,
+          watts,
+          icon,
+          powerText: formatPowerWatts(watts, haRef),
+        });
       }
     }
     items.sort((a, b) => b.watts - a.watts);

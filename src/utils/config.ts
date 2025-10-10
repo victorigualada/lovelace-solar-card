@@ -46,6 +46,8 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
     production_entity: defaultProduction,
     current_consumption_entity: defaultConsumption,
     image_url: '',
+    grid_feed_entity: '',
+    grid_feed_charging_entity: '',
     show_energy_flow: false,
     show_top_devices: false,
     top_devices_max: 4,
@@ -65,6 +67,8 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   merged.production_entity = config.production_entity ?? legacyProduction ?? '';
   merged.current_consumption_entity = config.current_consumption_entity ?? '';
   merged.image_url = config.image_url ?? '';
+  merged.grid_feed_entity = config.grid_feed_entity ?? '';
+  merged.grid_feed_charging_entity = config.grid_feed_charging_entity ?? '';
   merged.show_energy_flow = config.show_energy_flow ?? false;
   merged.show_top_devices = config.show_top_devices ?? false;
   merged.top_devices_max = Math.min(Math.max(parseInt(String(config.top_devices_max ?? 4), 10) || 4, 1), 8);

@@ -24,6 +24,8 @@ import './components/forecast';
 import './components/devices-row';
 import type { Hass, EntityRegistryEntry } from './types/ha';
 import { openBadgeTarget } from './utils/navigation';
+import { formatPowerWatts } from './utils/power';
+import { computeGridFeed } from './utils/grid-feed';
 import type { SolarCardConfig } from './types';
 type HassAware = HTMLElement & { hass?: Hass | null; setConfig?: (cfg: unknown) => void };
 
@@ -142,6 +144,8 @@ class HaSolarCard extends LitElement {
     };
     add(cfg.production_entity);
     add(cfg.current_consumption_entity);
+    add(cfg.grid_feed_entity);
+    add(cfg.grid_feed_charging_entity);
     add(cfg.total_yield_entity);
     add(cfg.total_grid_consumption_entity);
     add(cfg.weather_entity);
@@ -246,9 +250,35 @@ class HaSolarCard extends LitElement {
     );
     const totalsMetrics = computeTotalsMetrics(this._hass, cfg);
     const forecast = computeForecast(this._hass, cfg);
-    const devicesList = cfg.show_top_devices
-      ? this._deviceManager?.computeTopDevicesLive(cfg.top_devices_max || 4) || []
+    const maxDevices = cfg.top_devices_max || 4;
+    const baseDevices = cfg.show_top_devices
+      ? this._deviceManager?.computeTopDevicesLive(maxDevices) || []
       : [];
+    let devicesList = baseDevices;
+    const gridFeed = computeGridFeed(this._hass, cfg);
+    if (
+      cfg.show_top_devices &&
+      gridFeed &&
+      gridFeed.visible &&
+      gridFeed.entity &&
+      gridFeed.rawWatts != null &&
+      Number.isFinite(gridFeed.rawWatts)
+    ) {
+      const direction = gridFeed.direction === 'export' ? 'export' : 'import';
+      const icon = direction === 'export' ? 'mdi:transmission-tower-export' : 'mdi:transmission-tower-import';
+      const raw = gridFeed.rawWatts as number;
+      const gridBadge = {
+        id: 'grid-feed',
+        name: localize('card.grid_feed'),
+        watts: Math.abs(raw),
+        icon,
+        powerText: formatPowerWatts(raw, this._hass),
+        entityId: gridFeed.entity,
+        charging: !!gridFeed.charging,
+      };
+      const trimmedDevices = baseDevices.slice(0, Math.max(0, maxDevices - 1));
+      devicesList = [gridBadge, ...trimmedDevices];
+    }
 
     // Compose tile configs to render (full tile passthrough + trend graphs + legacy single)
     const tiles = buildTrendTileConfigs(cfg);
