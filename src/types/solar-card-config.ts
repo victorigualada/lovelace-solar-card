@@ -10,6 +10,9 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   show_energy_flow?: boolean;
   show_top_devices?: boolean;
   top_devices_max?: number;
+  // When true (default), show intensity on device badges
+  // If false, skip intensity calculations and render neutral badges
+  device_badge_intensity?: boolean;
   show_solar_forecast?: boolean;
   weather_entity?: string;
   solar_forecast_today_entity?: string;

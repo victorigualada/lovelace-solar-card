@@ -9,11 +9,13 @@ export class SolarDevicesRow extends LitElement {
     return {
       items: { attribute: false },
       hass: { attribute: false },
+      intensityEnabled: { attribute: false },
     };
   }
 
   items!: DeviceBadgeItem[];
   hass: Hass | null = null;
+  intensityEnabled: boolean = true;
   private _leaving: Map<string, DeviceBadgeItem> = new Map();
   private _prevItems: DeviceBadgeItem[] = [];
   private _prevTotal = 0;
@@ -25,15 +27,19 @@ export class SolarDevicesRow extends LitElement {
   }
 
   protected willUpdate(changed: Map<string, unknown>) {
-    if (!changed.has('items')) return;
+    if (!changed.has('items') && !changed.has('intensityEnabled')) return;
     const incoming = Array.isArray(this.items) ? this.items : [];
     const newIds = new Set(incoming.map((i) => i.id));
     // Compute previous total before updating snapshot
-    this._prevTotal = this._prevItems.reduce((sum, it) => {
-      if (it?.id === 'grid-feed') return sum;
-      const watts = typeof it?.watts === 'number' && Number.isFinite(it.watts) ? (it.watts as number) : 0;
-      return sum + watts;
-    }, 0);
+    if (this.intensityEnabled !== false) {
+      this._prevTotal = this._prevItems.reduce((sum, it) => {
+        if (it?.id === 'grid-feed') return sum;
+        const watts = typeof it?.watts === 'number' && Number.isFinite(it.watts) ? (it.watts as number) : 0;
+        return sum + watts;
+      }, 0);
+    } else {
+      this._prevTotal = 0;
+    }
     // Add removed items to leaving map from previous snapshot
     for (const it of this._prevItems) {
       if (!newIds.has(it.id)) this._leaving.set(it.id, { ...it });
@@ -115,11 +121,14 @@ export class SolarDevicesRow extends LitElement {
     const leaving = Array.from(this._leaving.values());
     const display = [...list, ...leaving];
     // Use total watts to compute proportional usage per badge (share of row)
-    const total = list.reduce((sum, it) => {
-      if (it?.id === 'grid-feed') return sum;
-      const watts = typeof it?.watts === 'number' && Number.isFinite(it.watts) ? (it.watts as number) : 0;
-      return sum + watts;
-    }, 0);
+    const enableIntensity = this.intensityEnabled !== false;
+    const total = enableIntensity
+      ? list.reduce((sum, it) => {
+          if (it?.id === 'grid-feed') return sum;
+          const watts = typeof it?.watts === 'number' && Number.isFinite(it.watts) ? (it.watts as number) : 0;
+          return sum + watts;
+        }, 0)
+      : 0;
     const newIds = new Set(list.map((i) => i.id));
 
     const feedBadges: DeviceBadgeItem[] = [];
@@ -133,9 +142,12 @@ export class SolarDevicesRow extends LitElement {
       const hasVal = typeof it.watts === 'number' && Number.isFinite(it.watts);
       const isLeaving = !newIds.has(it.id);
       const isGridFeed = it.id === 'grid-feed';
-      const denom = isLeaving ? this._prevTotal : total;
-      const pct = !isGridFeed && denom > 0 && hasVal ? Math.max(0, Math.min(1, (it.watts as number) / denom)) : 0;
-      const tier = pct >= 2 / 3 ? 3 : pct >= 1 / 3 ? 2 : 1;
+      const denom = enableIntensity ? (isLeaving ? this._prevTotal : total) : 0;
+      const pct =
+        enableIntensity && !isGridFeed && denom > 0 && hasVal
+          ? Math.max(0, Math.min(1, (it.watts as number) / denom))
+          : 0;
+      const tier = enableIntensity ? (pct >= 2 / 3 ? 3 : pct >= 1 / 3 ? 2 : 1) : 1;
       const classes = `badge tier-${tier}${hasVal ? '' : ' no-value'}${isLeaving ? ' leave' : ''}${
         isGridFeed ? ' grid-feed' : ''
       }${isGridFeed && it.charging ? ' charging' : ''}`;

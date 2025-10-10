@@ -326,6 +326,7 @@ class HaSolarCard extends LitElement {
               style="--solar-badge-max-count: ${cfg.top_devices_max || 4}"
               .items=${devicesList}
               .hass=${this._hass}
+              .intensityEnabled=${cfg.device_badge_intensity !== false}
               @device-selected=${this._onDeviceSelected}
             ></solar-devices-row>`
           : nothing}

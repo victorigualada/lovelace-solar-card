@@ -208,6 +208,7 @@ export class HaSolarCardEditor extends LitElement {
       ? [
           { name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } },
           { name: 'grid_feed_charging_entity', selector: { entity: { domain: 'binary_sensor' } } },
+          { name: 'device_badge_intensity', selector: { boolean: {} } },
         ]
       : [];
     // Trend graphs section (includes legacy single entity)
