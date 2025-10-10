@@ -21,7 +21,7 @@ export function formatPowerWatts(
       minimumFractionDigits: digitsKW,
       maximumFractionDigits: digitsKW,
     });
-      return `${formatted} kW`;
+    return `${formatted} kW`;
   }
   const formatted = formatNumberLocale(watts, hass, {
     minimumFractionDigits: digitsW,

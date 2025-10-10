@@ -178,7 +178,9 @@ export class SolarDevicesRow extends LitElement {
     </div>`;
   }
 
-  updated() { this._layoutRings(); }
+  updated() {
+    this._layoutRings();
+  }
 
   private _layoutRings() {
     const badges = (this.querySelectorAll('.badge.grid-feed.charging') || []) as unknown as NodeListOf<HTMLElement>;
