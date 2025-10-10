@@ -143,9 +143,10 @@ export class SolarDevicesRow extends LitElement {
       const isLeaving = !newIds.has(it.id);
       const isGridFeed = it.id === 'grid-feed';
       const denom = enableIntensity ? (isLeaving ? this._prevTotal : total) : 0;
-      const pct = enableIntensity && !isGridFeed && denom > 0 && hasVal
-        ? Math.max(0, Math.min(1, (it.watts as number) / denom))
-        : 0;
+      const pct =
+        enableIntensity && !isGridFeed && denom > 0 && hasVal
+          ? Math.max(0, Math.min(1, (it.watts as number) / denom))
+          : 0;
       const tier = enableIntensity ? (pct >= 2 / 3 ? 3 : pct >= 1 / 3 ? 2 : 1) : 1;
       const classes = `badge tier-${tier}${hasVal ? '' : ' no-value'}${isLeaving ? ' leave' : ''}${
         isGridFeed ? ' grid-feed' : ''
