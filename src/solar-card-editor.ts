@@ -184,6 +184,7 @@ export class HaSolarCardEditor extends LitElement {
         required: true,
         selector: { entity: { domain: 'sensor', device_class: 'power' } },
       },
+      { name: 'grid_feed_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       { name: 'image_url', selector: { text: {} } },
     ];
     const totals = [
@@ -204,7 +205,10 @@ export class HaSolarCardEditor extends LitElement {
     // Top consuming devices section
     const topDevicesToggle = [{ name: 'show_top_devices', selector: { boolean: {} } }];
     const topDevicesOptions = showTopDevices
-      ? [{ name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } }]
+      ? [
+          { name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } },
+          { name: 'grid_feed_charging_entity', selector: { entity: { domain: 'binary_sensor' } } },
+        ]
       : [];
     // Trend graphs section (includes legacy single entity)
     const trend = [

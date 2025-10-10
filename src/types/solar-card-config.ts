@@ -5,6 +5,8 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   production_entity?: string;
   current_consumption_entity?: string;
   image_url?: string;
+  grid_feed_entity?: string;
+  grid_feed_charging_entity?: string;
   show_energy_flow?: boolean;
   show_top_devices?: boolean;
   top_devices_max?: number;
@@ -38,4 +40,7 @@ export interface DeviceBadgeItem {
   name: string;
   watts: number;
   icon?: string;
+  powerText?: string;
+  entityId?: string;
+  charging?: boolean;
 }
