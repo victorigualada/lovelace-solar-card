@@ -311,8 +311,11 @@ export class HaSolarCardEditor extends LitElement {
                 ></ha-form>
                 ${this._renderExcludeDevicesPicker()}
                 <div style="display: none">
-                  <ha-form .hass=${this._hass} .data=${{}}
-                    .schema=${[{ name: '_dev_loader', selector: { device: {} } }]}>
+                  <ha-form
+                    .hass=${this._hass}
+                    .data=${{}}
+                    .schema=${[{ name: '_dev_loader', selector: { device: {} } }]}
+                  >
                   </ha-form>
                 </div>
               </div>`
