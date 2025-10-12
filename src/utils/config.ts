@@ -52,6 +52,7 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
     show_top_devices: false,
     top_devices_max: 4,
     device_badge_intensity: true,
+    excluded_device_ids: [],
     show_solar_forecast: false,
     weather_entity: '',
     solar_forecast_today_entity: '',
@@ -74,6 +75,14 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   merged.show_top_devices = config.show_top_devices ?? false;
   merged.top_devices_max = Math.min(Math.max(parseInt(String(config.top_devices_max ?? 4), 10) || 4, 1), 8);
   merged.device_badge_intensity = config.device_badge_intensity ?? true;
+  const excluded = (config as any).excluded_device_ids as any;
+  if (Array.isArray(excluded)) {
+    merged.excluded_device_ids = excluded.filter((x) => typeof x === 'string' && x);
+  } else if (typeof excluded === 'string' && excluded) {
+    merged.excluded_device_ids = [excluded];
+  } else {
+    merged.excluded_device_ids = [];
+  }
   merged.show_solar_forecast = config.show_solar_forecast ?? false;
   merged.weather_entity = config.weather_entity ?? '';
   merged.solar_forecast_today_entity = config.solar_forecast_today_entity ?? '';

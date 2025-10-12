@@ -22,7 +22,7 @@ export const DEVICES_STYLE_CSS = `
     gap: var(--solar-badges-gap, 12px);
     align-items: stretch;
     width: 100%;
-    cursor: pointer;
+    cursor: default;
     flex-wrap: wrap;
     --grid-feed-divider-width: 1px;
     --device-badge-count: var(--solar-badge-max-count, 4);
