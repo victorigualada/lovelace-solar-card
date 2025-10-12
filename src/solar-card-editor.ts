@@ -4,11 +4,14 @@ import type { Hass } from './types/ha';
 import { localize } from './localize/localize';
 import type { SolarCardConfig, SolarCardTotalsMetric } from './types/solar-card-config';
 import { iconForEntity } from './utils/icons';
+import { getEnergyPrefs, buildDevicePowerMapping } from './services/devices';
 
 export class HaSolarCardEditor extends LitElement {
   private static readonly MAX_METRICS = 6;
   private _hass: Hass | null;
   public config: SolarCardConfig;
+  private _energyDeviceIds: string[] = [];
+  private _loadingEnergyDevices = false;
   private readonly _metricFormSchema = [
     { name: 'entity', selector: { entity: {} } },
     { name: 'label', selector: { text: {} } },
@@ -60,6 +63,12 @@ export class HaSolarCardEditor extends LitElement {
     .metrics-empty {
       color: var(--secondary-text-color);
       font-size: 0.9rem;
+    }
+    .subsection-label {
+      color: var(--secondary-text-color);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin: 4px 0 0;
     }
     ha-expansion-panel.metric-item {
       --expansion-panel-content-padding: 0;
@@ -161,6 +170,9 @@ export class HaSolarCardEditor extends LitElement {
 
   set hass(hass: Hass) {
     this._hass = hass;
+    if (this.config?.show_top_devices) {
+      this._loadEnergyDevicesIfNeeded();
+    }
     this.requestUpdate();
   }
 
@@ -170,6 +182,9 @@ export class HaSolarCardEditor extends LitElement {
 
   setConfig(config: SolarCardConfig) {
     this.config = config || {};
+    if (this._hass && this.config?.show_top_devices) {
+      this._loadEnergyDevicesIfNeeded();
+    }
     this.requestUpdate();
   }
 
@@ -294,6 +309,15 @@ export class HaSolarCardEditor extends LitElement {
                   .computeHelper=${this._computeHelper}
                   @value-changed=${this._valueChanged}
                 ></ha-form>
+                ${this._renderExcludeDevicesPicker()}
+                <div style="display: none">
+                  <ha-form
+                    .hass=${this._hass}
+                    .data=${{}}
+                    .schema=${[{ name: '_dev_loader', selector: { device: {} } }]}
+                  >
+                  </ha-form>
+                </div>
               </div>`
             : null}
         </div>
@@ -590,6 +614,100 @@ export class HaSolarCardEditor extends LitElement {
     this._applyConfigUpdate(ev.detail.value);
   };
 
+  private async _loadEnergyDevicesIfNeeded() {
+    if (this._loadingEnergyDevices || this._energyDeviceIds.length) return;
+    if (!this._hass) return;
+    this._loadingEnergyDevices = true;
+    try {
+      const prefs = await getEnergyPrefs(this._hass);
+      const res = await buildDevicePowerMapping(this._hass, prefs?.device_consumption || []);
+      const statToDeviceId = res?.statToDeviceId || {};
+      const ids = Array.from(new Set(Object.values(statToDeviceId))).filter(Boolean) as string[];
+      this._energyDeviceIds = ids;
+    } catch (_e) {
+      this._energyDeviceIds = [];
+    } finally {
+      this._loadingEnergyDevices = false;
+      this.requestUpdate();
+    }
+  }
+
+  private _renderExcludeDevicesPicker() {
+    const selected: string[] = Array.isArray(this.config?.excluded_device_ids)
+      ? (this.config!.excluded_device_ids as string[])
+      : [];
+    const help = localize('editor.helper_excluded_device_ids') || '';
+    const label = localize('editor.label_excluded_device_ids') || 'Exclude devices';
+    const filter = (device) =>
+      Array.isArray(this._energyDeviceIds) && this._energyDeviceIds.length
+        ? this._energyDeviceIds.includes(device.id)
+        : false;
+
+    return html`
+      <div class="section" style="margin-top: 8px; display: grid; gap: 8px;">
+        <div class="subsection-label">${label}</div>
+        <div class="metrics-empty" style="margin-top: -4px;">${help}</div>
+        ${selected.map(
+          (id, index) => html`
+            <div class="device-row" style="display: grid; grid-template-columns: 1fr; gap: 8px; align-items: center;">
+              <ha-device-picker
+                .hass=${this._hass}
+                .value=${id}
+                .deviceFilter=${filter}
+                @value-changed=${this._onExcludedDeviceRowChanged}
+                data-index=${index}
+              ></ha-device-picker>
+            </div>
+          `,
+        )}
+        <div class="device-row" style="display: grid; grid-template-columns: 1fr; gap: 8px; align-items: center;">
+          <ha-device-picker
+            .hass=${this._hass}
+            .value=${''}
+            .deviceFilter=${filter}
+            @value-changed=${this._onExcludedDeviceAdd}
+          ></ha-device-picker>
+        </div>
+      </div>
+    `;
+  }
+
+  private _onExcludedDeviceRowChanged = (ev: CustomEvent) => {
+    ev.stopPropagation();
+    const index = Number((ev.currentTarget as HTMLElement)?.dataset?.index ?? -1);
+    const val = (ev.detail && (ev.detail as any).value) as string | undefined;
+    if (index < 0) return;
+    const curr: string[] = Array.isArray(this.config?.excluded_device_ids)
+      ? [...(this.config!.excluded_device_ids as string[])]
+      : [];
+    if (!val) {
+      // cleared via the picker's built-in clear (X) button -> remove row
+      if (index >= 0 && index < curr.length) curr.splice(index, 1);
+      this._applyConfigUpdate({ excluded_device_ids: curr });
+    } else {
+      curr[index] = val;
+      const unique = Array.from(new Set(curr.filter((x) => typeof x === 'string' && x)));
+      this._applyConfigUpdate({ excluded_device_ids: unique });
+    }
+  };
+
+  private _onExcludedDeviceAdd = (ev: CustomEvent) => {
+    ev.stopPropagation();
+    const picker = ev.currentTarget as any;
+    const val = (ev.detail && (ev.detail as any).value) as string | undefined;
+    if (!val) return;
+    const curr: string[] = Array.isArray(this.config?.excluded_device_ids)
+      ? [...(this.config!.excluded_device_ids as string[])]
+      : [];
+    if (!curr.includes(val)) curr.push(val);
+    this._applyConfigUpdate({ excluded_device_ids: curr });
+    try {
+      // clear the adder picker
+      if (picker) picker.value = '';
+    } catch (_e) {
+      /* ignore */
+    }
+  };
   private _applyConfigUpdate(partial: Partial<SolarCardConfig>) {
     const newConfig = { ...this.config, ...partial };
     this.config = newConfig;

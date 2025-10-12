@@ -46,12 +46,16 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
     }
   }
 
-  function computeTopDevicesLive(maxCount: number): DeviceBadgeItem[] {
+  function computeTopDevicesLive(maxCount: number, excludedDeviceIds?: string[]): DeviceBadgeItem[] {
     if (!devicePowerMap || !deviceList?.length) return [];
     const items: DeviceBadgeItem[] = [];
     for (const dev of deviceList) {
       const statId = dev.stat_consumption;
       const namestr = dev.name || statId;
+      const devId = statToDeviceId[statId];
+      if (Array.isArray(excludedDeviceIds) && excludedDeviceIds.length && devId && excludedDeviceIds.includes(devId)) {
+        continue;
+      }
       const pEntities = devicePowerMap[statId] || [];
       let watts: number | null = null;
       for (const pe of pEntities) {
