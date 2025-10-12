@@ -71,7 +71,7 @@ export const DEVICES_STYLE_CSS = `
     --badge-count: var(--device-badge-count, var(--solar-badge-max-count, 4));
     --badge-gap: var(--solar-badges-gap, 12px);
     --badge-basis: calc(
-      (100% - ((var(--badge-count) - 1) * var(--badge-gap)) - var(--grid-feed-divider-width, 1px))
+      (100% - ((var(--badge-count) - 1) * var(--badge-gap)) - var(--grid-feed-divider-width, 1px) - 300px)
         / var(--badge-count)
     );
     flex: 0 0 var(--badge-basis);
@@ -178,6 +178,8 @@ export const DEVICES_STYLE_CSS = `
     flex: 0 0 auto;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
     position: relative;
+    min-width: 90px;
+    justify-content: space-between;
     /* Allow charging ring to render outside the border */
     overflow: visible;
   }

@@ -28,7 +28,7 @@ export function computeToday(
     yieldToday =
       num != null
         ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: yieldUnit }
-        : { value: '…', unit: yieldUnit };
+        : { value: '—', unit: yieldUnit };
   }
 
   let gridToday: DisplayValue = { value: '—', unit: gridUnit };
@@ -37,7 +37,7 @@ export function computeToday(
     gridToday =
       num != null
         ? { value: formatNumberLocale(num, hass, { maximumFractionDigits: 2 }), unit: gridUnit }
-        : { value: '…', unit: gridUnit };
+        : { value: '—', unit: gridUnit };
   }
 
   return {
