@@ -32,9 +32,13 @@ export function ensureTodayDelta(hass: Hass, entityId: string, onUpdated?: () =>
   if (!entityId) return null;
   const dateKey = new Date().toDateString();
   const entry = todayCache[entityId];
+  // If we already have today's computed value, return it immediately
   if (entry && entry.dateKey === dateKey && entry.value != null) return entry.value;
-  if (entry && entry.inflight && entry.dateKey === dateKey) return null;
-  todayCache[entityId] = { dateKey, inflight: true, value: entry?.value ?? null };
+  // If a fetch is already in-flight for today, return best-known value (or null)
+  if (entry && entry.inflight && entry.dateKey === dateKey) return entry.value ?? null;
+  // Kick off a refresh for today. Do not carry over prior-day values.
+  const sameDayCached = entry && entry.dateKey === dateKey ? entry.value : null;
+  todayCache[entityId] = { dateKey, inflight: true, value: sameDayCached };
   getTodayDelta(hass, entityId)
     .then((num) => {
       todayCache[entityId] = { dateKey, inflight: false, value: num };
@@ -44,5 +48,6 @@ export function ensureTodayDelta(hass: Hass, entityId: string, onUpdated?: () =>
       todayCache[entityId] = { dateKey, inflight: false, value: null };
       onUpdated?.();
     });
-  return null;
+  // Return cached same-day value if present, otherwise null
+  return sameDayCached ?? null;
 }

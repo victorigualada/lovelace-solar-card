@@ -274,8 +274,7 @@ class HaSolarCard extends LitElement {
         entityId: gridFeed.entity,
         charging: !!gridFeed.charging,
       };
-      const trimmedDevices = baseDevices.slice(0, Math.max(0, maxDevices - 1));
-      devicesList = [gridBadge, ...trimmedDevices];
+      devicesList = [gridBadge, ...baseDevices];
     }
 
     // Compose tile configs to render (full tile passthrough + trend graphs + legacy single)
