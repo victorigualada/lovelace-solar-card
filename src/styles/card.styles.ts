@@ -68,13 +68,21 @@ export const cardStyles = css`
       display: flex;
     }
     .metrics-panel {
-      min-width: calc(100% - 320px);
+      /* Reserve space roughly equal to the responsive overview image width */
+      min-width: calc(100% - clamp(120px, 28cqi, 220px));
       padding-left: 0;
       border-left: none;
     }
   }
 
-  @container (max-width: 756px) {
+  /* Reorder for tablet: 1) overview, 2) forecast, 3) metrics */
+  @container (max-width: 1200px) and (min-width: 501px) {
+    .overview-panel { order: 1; max-width: 55%;}
+    .forecast-panel { order: 2; border-left: none; padding-left: 0; }
+    .metrics-panel { order: 3; min-width: 100%; padding-left: 5%; }
+  }
+
+  @container (max-width: 500px) {
     .metrics-panel {
       min-width: 100%;
     }
