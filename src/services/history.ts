@@ -1,6 +1,5 @@
 import type { Hass } from '../types/ha';
 import type { HistoryPeriodResponse } from '../types/stats';
-import { formatNumberLocale } from '../utils/format';
 
 // Returns today's delta for a cumulative sensor (00:00 → now)
 export async function getTodayDelta(hass: Hass, entityId: string): Promise<number> {
@@ -25,29 +24,132 @@ export async function getTodayDelta(hass: Hass, entityId: string): Promise<numbe
   return delta > 0 ? delta : 0;
 }
 
-type CacheEntry = { dateKey: string; inflight: boolean; value: number | null };
+const DEBOUNCE_MS = 30_000; // 30 seconds
+
+type CacheEntry = {
+  dateKey: string;
+  inflight: boolean;
+  value: number | null;
+  lastState: string | null;
+  timerId?: number | null;
+};
 const todayCache: Record<string, CacheEntry> = {};
 
-export function ensureTodayDelta(hass: Hass, entityId: string, onUpdated?: () => void): number | null {
-  if (!entityId) return null;
-  const dateKey = new Date().toDateString();
-  const entry = todayCache[entityId];
-  // If we already have today's computed value, return it immediately
-  if (entry && entry.dateKey === dateKey && entry.value != null) return entry.value;
-  // If a fetch is already in-flight for today, return best-known value (or null)
-  if (entry && entry.inflight && entry.dateKey === dateKey) return entry.value ?? null;
-  // Kick off a refresh for today. Do not carry over prior-day values.
-  const sameDayCached = entry && entry.dateKey === dateKey ? entry.value : null;
-  todayCache[entityId] = { dateKey, inflight: true, value: sameDayCached };
+function dateKeyToday(): string {
+  return new Date().toDateString();
+}
+
+function getCurrentState(hass: Hass, entityId: string): string | null {
+  return hass?.states?.[entityId]?.state ?? null;
+}
+
+function clearTimer(entry?: CacheEntry) {
+  if (entry?.timerId) {
+    clearTimeout(entry.timerId);
+    entry.timerId = null;
+  }
+}
+
+function resetIfNewDay(entityId: string, entry: CacheEntry | undefined, dateKey: string) {
+  if (entry && entry.dateKey !== dateKey) {
+    clearTimer(entry);
+    delete todayCache[entityId];
+    return undefined;
+  }
+  return entry;
+}
+
+function scheduleDebouncedRefresh(
+  hass: Hass,
+  entityId: string,
+  dateKey: string,
+  currentState: string | null,
+  onUpdated?: () => void,
+) {
+  const existing = todayCache[entityId];
+  clearTimer(existing);
+  const timerId = (setTimeout(() => {
+    const active = todayCache[entityId];
+    todayCache[entityId] = { ...(active || { dateKey }), inflight: true, timerId: null } as CacheEntry;
+    getTodayDelta(hass, entityId)
+      .then((num) => {
+        todayCache[entityId] = {
+          dateKey,
+          inflight: false,
+          value: num,
+          lastState: currentState,
+          timerId: null,
+        };
+        onUpdated?.();
+      })
+      .catch(() => {
+        todayCache[entityId] = {
+          dateKey,
+          inflight: false,
+          value: active?.value ?? null,
+          lastState: currentState,
+          timerId: null,
+        };
+        onUpdated?.();
+      });
+  }, DEBOUNCE_MS) as unknown) as number;
+  todayCache[entityId] = {
+    ...(existing || { dateKey, inflight: false, value: null, lastState: currentState }),
+    dateKey,
+    lastState: currentState,
+    timerId,
+  } as CacheEntry;
+}
+
+function fetchImmediate(
+  hass: Hass,
+  entityId: string,
+  dateKey: string,
+  currentState: string | null,
+  seedValue: number | null,
+  onUpdated?: () => void,
+) {
+  todayCache[entityId] = {
+    dateKey,
+    inflight: true,
+    value: seedValue,
+    lastState: currentState,
+    timerId: null,
+  };
   getTodayDelta(hass, entityId)
     .then((num) => {
-      todayCache[entityId] = { dateKey, inflight: false, value: num };
+      todayCache[entityId] = { dateKey, inflight: false, value: num, lastState: currentState, timerId: null };
       onUpdated?.();
     })
     .catch(() => {
-      todayCache[entityId] = { dateKey, inflight: false, value: null };
+      todayCache[entityId] = { dateKey, inflight: false, value: null, lastState: currentState, timerId: null };
       onUpdated?.();
     });
-  // Return cached same-day value if present, otherwise null
+}
+
+export function ensureTodayDelta(hass: Hass, entityId: string, onUpdated?: () => void): number | null {
+  if (!entityId) return null;
+  const dateKey = dateKeyToday();
+  const currentState = getCurrentState(hass, entityId);
+  const prevEntry = todayCache[entityId];
+  const rolledOver = !!(prevEntry && prevEntry.dateKey !== dateKey);
+  let entry = resetIfNewDay(entityId, prevEntry, dateKey);
+
+  // If we already have today's computed value, return it immediately
+  if (entry && entry.dateKey === dateKey && entry.value != null) {
+    if (entry.lastState !== currentState && !entry.inflight) {
+      // Debounce background refresh on state change
+      scheduleDebouncedRefresh(hass, entityId, dateKey, currentState, onUpdated);
+    }
+    return entry.value;
+  }
+
+  // If a fetch is already in-flight for today, return best-known value (or null)
+  if (entry && entry.inflight && entry.dateKey === dateKey) return entry.value ?? null;
+
+  // Kick off an immediate refresh for first load of the day
+  // If we just rolled over to a new day, seed with 0 so UI shows 0 instead of empty
+  const sameDayCached = rolledOver ? 0 : entry && entry.dateKey === dateKey ? entry.value : null;
+  fetchImmediate(hass, entityId, dateKey, currentState, sameDayCached, onUpdated);
   return sameDayCached ?? null;
 }
