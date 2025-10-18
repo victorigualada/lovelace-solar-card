@@ -56,6 +56,7 @@
     "label_total_yield_entity": "Total yield entity (kWh)",
     "label_total_grid_consumption_entity": "Total grid consumption entity (kWh)",
     "label_image_url": "Image URL (optional)",
+    "label_show_trend_graphs": "Show trend graphs",
     "label_trend_graph_entities": "Trend graph entities (multiple sensors)",
     "label_trend_graph_hours_to_show": "Trend graph hours (default 24)",
     "helper_show_energy_flow": "Adds the built-in Energy Flow (Sankey) graph below this card (requires Energy configuration).",
@@ -67,6 +68,7 @@
     "helper_weather_entity": "If set, shows temperature and condition for today.",
     "helper_solar_forecast_today_entity": "If set and no weather entity, shows today's expected solar production.",
     "helper_show_today_metrics": "Turn off to hide 'Yield today' and 'Grid today' and use up to 8 custom metrics.",
+    "helper_show_trend_graphs": "Displays trend graph tiles for selected sensors.",
     "helper_trend_graph_entities": "Optional. Select one or more sensor entities to render as individual trend graphs (Tile features).",
     "helper_trend_graph_hours_to_show": "Optional. Applies to all auto-generated trend graphs."
   }

@@ -82,6 +82,9 @@ export function buildTrendTileConfigs(cfg: any): any[] {
   for (const t of rawTiles) {
     if (t && typeof t === 'object') tiles.push({ type: 'tile', ...t });
   }
+  if ((cfg as any)?.show_trend_graphs === false) {
+    return tiles;
+  }
   const ents = Array.isArray((cfg as any)?.trend_graph_entities) ? ((cfg as any).trend_graph_entities as string[]) : [];
   const merged = new Set<string>(ents);
   const defHours = Number((cfg as any)?.trend_graph_hours_to_show) || 24;

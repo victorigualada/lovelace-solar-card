@@ -22,6 +22,8 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   total_grid_consumption_entity?: string;
   totals_metrics?: SolarCardTotalsMetric[];
   trend_graph_entities?: string[];
+  trend_graph_hours_to_show?: number;
+  show_trend_graphs?: boolean;
 }
 
 export interface SolarCardTotalsMetric {

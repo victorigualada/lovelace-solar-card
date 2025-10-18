@@ -57,6 +57,8 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
     weather_entity: '',
     solar_forecast_today_entity: '',
     show_today_metrics: true,
+    show_trend_graphs: false,
+    trend_graph_hours_to_show: 24,
     trend_graph_entities: [],
     total_yield_entity: '',
     total_grid_consumption_entity: '',
@@ -88,9 +90,11 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   merged.weather_entity = config.weather_entity ?? '';
   merged.solar_forecast_today_entity = config.solar_forecast_today_entity ?? '';
   merged.show_today_metrics = config.show_today_metrics ?? true;
+  merged.show_trend_graphs = (config as any).show_trend_graphs ?? true;
   merged.trend_graph_entities = Array.isArray((config as any).trend_graph_entities)
     ? ((config as any).trend_graph_entities as string[])
     : [];
+  merged.trend_graph_hours_to_show = Number((config as any).trend_graph_hours_to_show) || 24;
   merged.total_yield_entity = config.total_yield_entity ?? '';
   merged.total_grid_consumption_entity = config.total_grid_consumption_entity ?? '';
 

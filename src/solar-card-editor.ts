@@ -190,6 +190,7 @@ export class HaSolarCardEditor extends LitElement {
   _buildSchemas() {
     const cfg = this.config || {};
     const showSolarForecast = !!cfg.show_solar_forecast;
+    const showTrend = !!(cfg as any).show_trend_graphs;
     const showTopDevices = !!cfg.show_top_devices;
     const showToday = cfg.show_today_metrics !== false;
     const overview = [
@@ -199,7 +200,6 @@ export class HaSolarCardEditor extends LitElement {
         required: true,
         selector: { entity: { domain: 'sensor', device_class: 'power' } },
       },
-      { name: 'grid_feed_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       { name: 'image_url', selector: { text: {} } },
     ];
     const totalsToggle = [{ name: 'show_today_metrics', selector: { boolean: {} } }];
@@ -224,16 +224,20 @@ export class HaSolarCardEditor extends LitElement {
     const topDevicesToggle = [{ name: 'show_top_devices', selector: { boolean: {} } }];
     const topDevicesOptions = showTopDevices
       ? [
+          { name: 'grid_feed_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
           { name: 'top_devices_max', selector: { number: { min: 1, max: 8, mode: 'box' } } },
           { name: 'grid_feed_charging_entity', selector: { entity: { domain: 'binary_sensor' } } },
           { name: 'device_badge_intensity', selector: { boolean: {} } },
         ]
       : [];
-    // Trend graphs section (includes legacy single entity)
-    const trend = [
-      { name: 'trend_graph_entities', selector: { entity: { multiple: true, domain: 'sensor' } } },
-      { name: 'trend_graph_hours_to_show', selector: { number: { min: 1, max: 168, mode: 'box' } } },
-    ];
+    // Trend graphs section (guarded by toggle)
+    const trendToggle = [{ name: 'show_trend_graphs', selector: { boolean: {} } }];
+    const trendOptions = showTrend
+      ? [
+          { name: 'trend_graph_entities', selector: { entity: { multiple: true, domain: 'sensor' } } },
+          { name: 'trend_graph_hours_to_show', selector: { number: { min: 1, max: 168, mode: 'box' } } },
+        ]
+      : [];
     // Sankey section
     const sankey = [{ name: 'show_energy_flow', selector: { boolean: {} } }];
     return {
@@ -244,7 +248,8 @@ export class HaSolarCardEditor extends LitElement {
       weatherOptions,
       topDevicesToggle,
       topDevicesOptions,
-      trend,
+      trendToggle,
+      trendOptions,
       sankey,
     };
   }
@@ -351,11 +356,23 @@ export class HaSolarCardEditor extends LitElement {
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
-            .schema=${schemas.trend}
+            .schema=${schemas.trendToggle}
             .computeLabel=${this._computeLabel}
             .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
           ></ha-form>
+          ${schemas.trendOptions.length
+            ? html`<div class="dependent">
+                <ha-form
+                  .hass=${this._hass}
+                  .data=${this.config}
+                  .schema=${schemas.trendOptions}
+                  .computeLabel=${this._computeLabel}
+                  .computeHelper=${this._computeHelper}
+                  @value-changed=${this._valueChanged}
+                ></ha-form>
+              </div>`
+            : null}
         </div>
         <div class="section">
           <h3>${localize('editor.section_sankey')}</h3>
