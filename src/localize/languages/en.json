@@ -52,6 +52,7 @@
     "label_show_solar_forecast": "Show solar forecast panel",
     "label_weather_entity": "Weather entity (optional)",
     "label_solar_forecast_today_entity": "Solar forecast today entity (kWh, optional)",
+    "label_show_today_metrics": "Show today's metrics (yield and grid)",
     "label_total_yield_entity": "Total yield entity (kWh)",
     "label_total_grid_consumption_entity": "Total grid consumption entity (kWh)",
     "label_image_url": "Image URL (optional)",
@@ -65,6 +66,7 @@
     "helper_show_solar_forecast": "Shows a compact forecast panel aligned to the right.",
     "helper_weather_entity": "If set, shows temperature and condition for today.",
     "helper_solar_forecast_today_entity": "If set and no weather entity, shows today's expected solar production.",
+    "helper_show_today_metrics": "Turn off to hide 'Yield today' and 'Grid today' and use up to 8 custom metrics.",
     "helper_trend_graph_entities": "Optional. Select one or more sensor entities to render as individual trend graphs (Tile features).",
     "helper_trend_graph_hours_to_show": "Optional. Applies to all auto-generated trend graphs."
   }

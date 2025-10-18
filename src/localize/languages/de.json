@@ -46,6 +46,7 @@
     "label_show_solar_forecast": "Solarprognose anzeigen",
     "label_weather_entity": "Wetterentität (optional)",
     "label_solar_forecast_today_entity": "Solarprognose heute (kWh, optional)",
+    "label_show_today_metrics": "Heutige Werte anzeigen (Erzeugung/Netz)",
     "label_total_yield_entity": "Gesamterzeugung (kWh)",
     "label_total_grid_consumption_entity": "Gesamtverbrauch Netz (kWh)",
     "label_image_url": "Bild-URL (optional)",
@@ -59,6 +60,7 @@
     "helper_show_solar_forecast": "Zeigt ein kompaktes Prognosefeld rechts an.",
     "helper_weather_entity": "Falls gesetzt, werden Temperatur und Zustand für heute angezeigt.",
     "helper_solar_forecast_today_entity": "Falls gesetzt und keine Wetterentität vorhanden, wird die erwartete solare Tagesproduktion angezeigt.",
+    "helper_show_today_metrics": "Deaktivieren, um 'Erzeugung heute' und 'Netz heute' auszublenden und bis zu 8 benutzerdefinierte Metriken zu verwenden.",
     "helper_trend_graph_entities": "Optional. Wählen Sie eine oder mehrere Sensorentitäten für einzelne Trenddiagramme (Tile-Feature).",
     "helper_trend_graph_hours_to_show": "Optional. Gilt für alle automatisch erzeugten Trenddiagramme."
   }

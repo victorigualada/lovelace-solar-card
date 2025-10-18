@@ -7,7 +7,6 @@ import { iconForEntity } from './utils/icons';
 import { getEnergyPrefs, buildDevicePowerMapping } from './services/devices';
 
 export class HaSolarCardEditor extends LitElement {
-  private static readonly MAX_METRICS = 6;
   private _hass: Hass | null;
   public config: SolarCardConfig;
   private _energyDeviceIds: string[] = [];
@@ -192,6 +191,7 @@ export class HaSolarCardEditor extends LitElement {
     const cfg = this.config || {};
     const showSolarForecast = !!cfg.show_solar_forecast;
     const showTopDevices = !!cfg.show_top_devices;
+    const showToday = cfg.show_today_metrics !== false;
     const overview = [
       { name: 'production_entity', required: true, selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       {
@@ -202,10 +202,13 @@ export class HaSolarCardEditor extends LitElement {
       { name: 'grid_feed_entity', selector: { entity: { domain: 'sensor', device_class: 'power' } } },
       { name: 'image_url', selector: { text: {} } },
     ];
-    const totals = [
-      { name: 'total_yield_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } },
-      { name: 'total_grid_consumption_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } },
-    ];
+    const totalsToggle = [{ name: 'show_today_metrics', selector: { boolean: {} } }];
+    const totalsOptions = showToday
+      ? [
+          { name: 'total_yield_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } },
+          { name: 'total_grid_consumption_entity', selector: { entity: { domain: 'sensor', device_class: 'energy' } } },
+        ]
+      : [];
     // Weather forecast section
     const weatherToggle = [{ name: 'show_solar_forecast', selector: { boolean: {} } }];
     const weatherOptions = showSolarForecast
@@ -233,7 +236,17 @@ export class HaSolarCardEditor extends LitElement {
     ];
     // Sankey section
     const sankey = [{ name: 'show_energy_flow', selector: { boolean: {} } }];
-    return { overview, totals, weatherToggle, weatherOptions, topDevicesToggle, topDevicesOptions, trend, sankey };
+    return {
+      overview,
+      totalsToggle,
+      totalsOptions,
+      weatherToggle,
+      weatherOptions,
+      topDevicesToggle,
+      topDevicesOptions,
+      trend,
+      sankey,
+    };
   }
 
   render() {
@@ -256,11 +269,23 @@ export class HaSolarCardEditor extends LitElement {
           <ha-form
             .hass=${this._hass}
             .data=${this.config}
-            .schema=${schemas.totals}
+            .schema=${schemas.totalsToggle}
             .computeLabel=${this._computeLabel}
             .computeHelper=${this._computeHelper}
             @value-changed=${this._valueChanged}
           ></ha-form>
+          ${schemas.totalsOptions.length
+            ? html`<div class="dependent">
+                <ha-form
+                  .hass=${this._hass}
+                  .data=${this.config}
+                  .schema=${schemas.totalsOptions}
+                  .computeLabel=${this._computeLabel}
+                  .computeHelper=${this._computeHelper}
+                  @value-changed=${this._valueChanged}
+                ></ha-form>
+              </div>`
+            : null}
         </div>
         <div class="section">
           <h3>${localize('editor.section_custom_metrics')}</h3>
@@ -351,7 +376,7 @@ export class HaSolarCardEditor extends LitElement {
     const hasCustomMetrics = Array.isArray(this.config?.totals_metrics);
     const metrics = hasCustomMetrics ? this._getMetricsForEditor() : [];
     this._syncExpandedMetricIds(metrics);
-    const maxReached = metrics.length >= HaSolarCardEditor.MAX_METRICS;
+    const maxReached = metrics.length >= this._maxMetrics();
     const showEmpty = metrics.length === 0;
     return html`
       <div class="metrics-editor">
@@ -533,7 +558,7 @@ export class HaSolarCardEditor extends LitElement {
   private _handleAddMetric = (ev: Event) => {
     ev.stopPropagation();
     const metrics = this._prepareMetricsForMutation();
-    if (metrics.length >= HaSolarCardEditor.MAX_METRICS) return;
+    if (metrics.length >= this._maxMetrics()) return;
     const newId = this._generateMetricId(metrics.length);
     metrics.push({ id: newId });
     const expanded = new Set(this._expandedMetricIds);
@@ -731,6 +756,18 @@ export class HaSolarCardEditor extends LitElement {
     const localized = localize(key);
     return localized && localized !== key ? localized : undefined;
   };
+
+  private _isTodayShown(): boolean {
+    const cfg = this.config || ({} as SolarCardConfig);
+    const toggle = cfg.show_today_metrics !== false;
+    const hasSources = !!(cfg.total_yield_entity || cfg.total_grid_consumption_entity);
+    return toggle && hasSources;
+  }
+
+  private _maxMetrics(): number {
+    // When today metrics are visible, keep 6 custom metrics; otherwise allow 8
+    return this._isTodayShown() ? 6 : 8;
+  }
 
   private _resolveMetricPreviewIcon(metric: SolarCardTotalsMetric): string | null {
     const useEntityIcon = metric?.use_entity_icon !== false; // default true

@@ -15,6 +15,9 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   show_solar_forecast?: boolean;
   weather_entity?: string;
   solar_forecast_today_entity?: string;
+  // When true (default), show the two "today" metrics (yield + grid).
+  // When false, hide them and allow up to 8 custom totals metrics.
+  show_today_metrics?: boolean;
   total_yield_entity?: string;
   total_grid_consumption_entity?: string;
   totals_metrics?: SolarCardTotalsMetric[];

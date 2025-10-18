@@ -46,6 +46,7 @@
     "label_show_solar_forecast": "Zonvoorspelling tonen",
     "label_weather_entity": "Weer-entiteit (optioneel)",
     "label_solar_forecast_today_entity": "Zonvoorspelling vandaag (kWh, optioneel)",
+    "label_show_today_metrics": "Metrieken van vandaag tonen (opbrengst en net)",
     "label_total_yield_entity": "Totale opwek-entiteit (kWh)",
     "label_total_grid_consumption_entity": "Totale netverbruiksentiteit (kWh)",
     "label_image_url": "Afbeeldings-URL (optioneel)",
@@ -59,6 +60,7 @@
     "helper_show_solar_forecast": "Toont een compact prognosepaneel rechts.",
     "helper_weather_entity": "Indien ingesteld, toont temperatuur en conditie voor vandaag.",
     "helper_solar_forecast_today_entity": "Indien ingesteld en zonder weerentiteit, toont de verwachte zonneproductie van vandaag.",
+    "helper_show_today_metrics": "Uitschakelen om 'Opbrengst vandaag' en 'Net vandaag' te verbergen en tot 8 aangepaste metrieken te gebruiken.",
     "helper_trend_graph_entities": "Optioneel. Kies een of meer sensorentiteiten om als individuele trendgrafieken (Tile-functie) weer te geven.",
     "helper_trend_graph_hours_to_show": "Optioneel. Geldt voor alle automatisch gegenereerde trendgrafieken."
   }

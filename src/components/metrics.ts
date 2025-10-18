@@ -9,6 +9,7 @@ export class SolarMetrics extends LitElement {
       today: { attribute: false },
       totals: { attribute: false },
       labels: { attribute: false },
+      showToday: { attribute: false },
     };
   }
 
@@ -22,6 +23,7 @@ export class SolarMetrics extends LitElement {
     entity: string | null;
   }>;
   labels: { yieldToday: string; gridToday: string } = { yieldToday: 'Yield today', gridToday: 'Grid today' };
+  showToday: boolean = true;
 
   createRenderRoot() {
     return this;
@@ -59,17 +61,24 @@ export class SolarMetrics extends LitElement {
       gridEntity: null,
     };
     const totals = Array.isArray(this.totals) ? this.totals : [];
-    const items: unknown[] = [
-      html`<div class="metric metric-top" data-entity="${t.yieldEntity || ''}" @click=${this._emitMetricClick}>
-        <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
-        <div class="label">${this.labels.yieldToday}</div>
-        <div class="value smaller">${t.yieldToday.value}${t.yieldToday.unit ? html` ${t.yieldToday.unit}` : ''}</div>
-      </div>`,
-      html`<div class="metric metric-top" data-entity="${t.gridEntity || ''}" @click=${this._emitMetricClick}>
-        <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
-        <div class="label">${this.labels.gridToday}</div>
-        <div class="value smaller">${t.gridToday.value}${t.gridToday.unit ? html` ${t.gridToday.unit}` : ''}</div>
-      </div>`,
+    const items: unknown[] = [];
+    if (this.showToday) {
+      items.push(
+        html`<div class="metric metric-top" data-entity="${t.yieldEntity || ''}" @click=${this._emitMetricClick}>
+          <ha-icon class="icon" icon="mdi:solar-power-variant"></ha-icon>
+          <div class="label">${this.labels.yieldToday}</div>
+          <div class="value smaller">${t.yieldToday.value}${t.yieldToday.unit ? html` ${t.yieldToday.unit}` : ''}</div>
+        </div>`,
+      );
+      items.push(
+        html`<div class="metric metric-top" data-entity="${t.gridEntity || ''}" @click=${this._emitMetricClick}>
+          <ha-icon class="icon" icon="mdi:transmission-tower"></ha-icon>
+          <div class="label">${this.labels.gridToday}</div>
+          <div class="value smaller">${t.gridToday.value}${t.gridToday.unit ? html` ${t.gridToday.unit}` : ''}</div>
+        </div>`,
+      );
+    }
+    items.push(
       ...totals.map(
         (m) =>
           html`<div
@@ -85,7 +94,7 @@ export class SolarMetrics extends LitElement {
             <div class="value smaller">${m.value}${m.unit ? html` ${m.unit}` : nothing}</div>
           </div>`,
       ),
-    ];
+    );
     const columns = Math.min(Math.max(items.length, 1), 4);
     const grouped: Array<Array<unknown>> = items.reduce((acc: Array<Array<unknown>>, item, idx) => {
       const col = idx % columns;
