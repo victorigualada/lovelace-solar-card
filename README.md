@@ -21,6 +21,7 @@
 - Optional devices row: lists top consuming devices (from Energy preferences)
 - Optional energy flow: embeds the built‑in Energy Sankey card below
 - Optional compact forecast panel: weather or expected solar forecast
+- Optional trend graphs: render Tile trend graphs for selected sensors
 - Localized UI: en, es, fr, de, pt; auto‑syncs to HA language
 - Responsive layout: adapts cleanly from wide to mobile widths
 
@@ -75,12 +76,24 @@ totals_metrics:
     label: Battery throughput
 
 # Options
+
+# Energy flow (Sankey)
 show_energy_flow: true # show built‑in Energy Sankey
+
+# Devices row (Top consuming devices)
 show_top_devices: true # show devices row
 top_devices_max: 4 # 1–8
-trend_graph_entities: # optional list of tile trend graphs
+grid_feed_entity: sensor.grid_feed_now # optional, W/kW. Adds a Grid badge at the start of the devices row
+grid_feed_charging_entity: binary_sensor.ev_charging # optional. Tints the Grid badge when charging
+
+# Trend graphs (Tile features)
+show_trend_graphs: true # enable trend graph tiles below the devices row
+trend_graph_hours_to_show: 24 # optional (default 24)
+trend_graph_entities:
   - sensor.grid_energy_daily
   - sensor.pv_yield_today
+
+# Forecast (right column)
 show_solar_forecast: true # enable forecast column
 weather_entity: weather.home # optional (shows weather)
 solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forecast)
@@ -91,7 +104,7 @@ Notes:
 - The left panel requires both production and current consumption entities.
 - The Today section shows derived yield and grid consumption metrics automatically when enabled. You can disable it with `show_today_metrics: false` to display up to 8 custom totals metrics.
 - Custom totals metrics accept any label (spaces allowed) and the order you set in the editor is preserved in the card.
-- If `trend_graph_entities` is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
+- If `show_trend_graphs` is true and `trend_graph_entities` is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
 - The Energy Flow section requires that your Energy dashboard is configured.
 

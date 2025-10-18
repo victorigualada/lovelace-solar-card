@@ -49,6 +49,7 @@
     "label_total_yield_entity": "Entidade de produção total (kWh)",
     "label_total_grid_consumption_entity": "Entidade de consumo total da rede (kWh)",
     "label_image_url": "URL da imagem (opcional)",
+    "label_show_trend_graphs": "Mostrar gráficos de tendência",
     "label_trend_graph_entities": "Entidades dos gráficos de tendência (múltiplos sensores)",
     "label_trend_graph_hours_to_show": "Horas a exibir no gráfico de tendência (padrão 24)",
     "helper_show_energy_flow": "Adiciona o gráfico Energy Flow (Sankey) integrado abaixo desta carta (requer configuração de Energia).",
@@ -59,6 +60,7 @@
     "helper_weather_entity": "Se definido, mostra a temperatura e condição de hoje.",
     "helper_solar_forecast_today_entity": "Se definido e sem entidade de clima, mostra a produção solar esperada para hoje.",
     "helper_show_today_metrics": "Desative para ocultar 'Produção hoje' e 'Rede hoje' e usar até 8 métricas personalizadas.",
+    "helper_show_trend_graphs": "Exibe gráficos de tendência para os sensores selecionados.",
     "helper_trend_graph_entities": "Opcional. Selecione uma ou mais entidades de sensor para exibir como gráficos de tendência individuais (recurso Tile).",
     "helper_trend_graph_hours_to_show": "Opcional. Aplica-se a todos os gráficos de tendência gerados automaticamente."
   }

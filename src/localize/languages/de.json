@@ -50,6 +50,7 @@
     "label_total_yield_entity": "Gesamterzeugung (kWh)",
     "label_total_grid_consumption_entity": "Gesamtverbrauch Netz (kWh)",
     "label_image_url": "Bild-URL (optional)",
+    "label_show_trend_graphs": "Trenddiagramme anzeigen",
     "label_trend_graph_entities": "Trenddiagramm-Entitäten (mehrere Sensoren)",
     "label_trend_graph_hours_to_show": "Trenddiagramm-Stunden (Standard 24)",
     "helper_show_energy_flow": "Fügt das integrierte Energy-Flow-(Sankey-)Diagramm unterhalb der Karte hinzu (erfordert Energie-Konfiguration).",
@@ -61,6 +62,7 @@
     "helper_weather_entity": "Falls gesetzt, werden Temperatur und Zustand für heute angezeigt.",
     "helper_solar_forecast_today_entity": "Falls gesetzt und keine Wetterentität vorhanden, wird die erwartete solare Tagesproduktion angezeigt.",
     "helper_show_today_metrics": "Deaktivieren, um 'Erzeugung heute' und 'Netz heute' auszublenden und bis zu 8 benutzerdefinierte Metriken zu verwenden.",
+    "helper_show_trend_graphs": "Trenddiagramme für ausgewählte Sensoren anzeigen.",
     "helper_trend_graph_entities": "Optional. Wählen Sie eine oder mehrere Sensorentitäten für einzelne Trenddiagramme (Tile-Feature).",
     "helper_trend_graph_hours_to_show": "Optional. Gilt für alle automatisch erzeugten Trenddiagramme."
   }

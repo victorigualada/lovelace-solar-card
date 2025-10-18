@@ -50,6 +50,7 @@
     "label_total_yield_entity": "Totale opwek-entiteit (kWh)",
     "label_total_grid_consumption_entity": "Totale netverbruiksentiteit (kWh)",
     "label_image_url": "Afbeeldings-URL (optioneel)",
+    "label_show_trend_graphs": "Trendgrafieken tonen",
     "label_trend_graph_entities": "Trendgrafiek-entiteiten (meerdere sensoren)",
     "label_trend_graph_hours_to_show": "Trendgrafiek-uren (standaard 24)",
     "helper_show_energy_flow": "Voegt de ingebouwde Energy Flow (Sankey) grafiek onder deze kaart toe (vereist Energie-configuratie).",
@@ -61,6 +62,7 @@
     "helper_weather_entity": "Indien ingesteld, toont temperatuur en conditie voor vandaag.",
     "helper_solar_forecast_today_entity": "Indien ingesteld en zonder weerentiteit, toont de verwachte zonneproductie van vandaag.",
     "helper_show_today_metrics": "Uitschakelen om 'Opbrengst vandaag' en 'Net vandaag' te verbergen en tot 8 aangepaste metrieken te gebruiken.",
+    "helper_show_trend_graphs": "Trendgrafiektegels voor geselecteerde sensoren tonen.",
     "helper_trend_graph_entities": "Optioneel. Kies een of meer sensorentiteiten om als individuele trendgrafieken (Tile-functie) weer te geven.",
     "helper_trend_graph_hours_to_show": "Optioneel. Geldt voor alle automatisch gegenereerde trendgrafieken."
   }

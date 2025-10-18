@@ -285,7 +285,7 @@ class HaSolarCard extends LitElement {
 
     const todayLabels = { yieldToday: localize('card.yield_today'), gridToday: localize('card.grid_today') };
     const showTodayMetrics =
-      (cfg.show_today_metrics !== false) && !!(cfg.total_yield_entity || cfg.total_grid_consumption_entity);
+      cfg.show_today_metrics !== false && !!(cfg.total_yield_entity || cfg.total_grid_consumption_entity);
 
     return html`
       <ha-card>
