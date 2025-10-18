@@ -16,7 +16,7 @@
 - Left panel: production and current consumption with optional image/illustration
 - Today metrics: yield today, grid today, battery percentage, inverter state
 - Totals grid: lifetime yield, total grid consumption, battery capacity, inverter mode
-- Custom totals metrics: add up to 8 extra entities with friendly labels
+- Custom totals metrics: add up to 8 extra entities with friendly labels (8 when today's metrics are hidden; otherwise 6)
 - Drag-and-drop ordering: reorder custom metrics directly in the visual editor
 - Optional devices row: lists top consuming devices (from Energy preferences)
 - Optional energy flow: embeds the built‑in Energy Sankey card below
@@ -63,6 +63,8 @@ image_url: https://example.com/your/solar.jpg # optional
 # Totals (right panels)
 total_yield_entity: sensor.pv_total_yield # kWh
 total_grid_consumption_entity: sensor.grid_total # kWh
+# Hide the two "today" metrics (yield/grid) to show more custom metrics
+show_today_metrics: true
 # Optional custom metrics for the totals grid (up to 8 entries, supports drag & drop ordering)
 totals_metrics:
   - entity: sensor.pv_total_yield
@@ -87,7 +89,7 @@ solar_forecast_today_entity: sensor.solar_forecast_today # optional (shows forec
 Notes:
 
 - The left panel requires both production and current consumption entities.
-- The Today section shows derived yield and grid consumption metrics automatically, and the totals grid flows onto additional rows after four items.
+- The Today section shows derived yield and grid consumption metrics automatically when enabled. You can disable it with `show_today_metrics: false` to display up to 8 custom totals metrics.
 - Custom totals metrics accept any label (spaces allowed) and the order you set in the editor is preserved in the card.
 - If `trend_graph_entities` is set, the card renders one Tile per entity with the Tile "trend-graph" feature between the devices row and the Energy Sankey.
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.

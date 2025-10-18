@@ -46,6 +46,7 @@
     "label_show_solar_forecast": "Mostrar panel de pronóstico solar",
     "label_weather_entity": "Entidad meteorológica (opcional)",
     "label_solar_forecast_today_entity": "Entidad de pronóstico solar de hoy (kWh, opcional)",
+    "label_show_today_metrics": "Mostrar métricas de hoy (producción y red)",
     "label_total_yield_entity": "Entidad de producción total (kWh)",
     "label_total_grid_consumption_entity": "Entidad de consumo total de red (kWh)",
     "label_image_url": "URL de la imagen (opcional)",
@@ -59,6 +60,7 @@
     "helper_show_solar_forecast": "Muestra un panel de pronóstico compacto alineado a la derecha.",
     "helper_weather_entity": "Si se establece, muestra la temperatura y condición para hoy.",
     "helper_solar_forecast_today_entity": "Si se establece y no hay entidad meteorológica, muestra la producción solar esperada para hoy.",
+    "helper_show_today_metrics": "Desactivar para ocultar 'Producción hoy' y 'Red hoy' y usar hasta 8 métricas personalizadas.",
     "helper_trend_graph_entities": "Opcional. Selecciona una o más entidades de sensores para mostrarlas como gráficos de tendencia individuales (característica Tile).",
     "helper_trend_graph_hours_to_show": "Opcional. Se aplica a todos los gráficos de tendencia generados automáticamente."
   }
