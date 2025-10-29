@@ -118,8 +118,8 @@ export class SolarDevicesRow extends LitElement {
 
   render() {
     const list = Array.isArray(this.items) ? this.items : [];
-    const leaving = Array.from(this._leaving.values());
-    const display = [...list, ...leaving];
+    // Avoid rendering transient leaving items to prevent brief wrap beyond max
+    const display = list;
     // Use total watts to compute proportional usage per badge (share of row)
     const enableIntensity = this.intensityEnabled !== false;
     const total = enableIntensity
