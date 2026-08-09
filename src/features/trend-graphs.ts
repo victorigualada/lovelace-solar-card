@@ -38,7 +38,14 @@ export async function renderTrendGraphs(options: {
   const { hass, container, tileConfigs, existing } = options;
   await ensureRegistries(hass);
   if (!container || !tileConfigs?.length) return existing;
-  if (Array.isArray(existing) && existing.length === tileConfigs.length) {
+  // Only reuse the existing tiles when they are still mounted in this container.
+  // Lit drops and recreates #graphs-section when the tile count goes from zero,
+  // which detaches them while the count still matches.
+  if (
+    Array.isArray(existing) &&
+    existing.length === tileConfigs.length &&
+    existing.every((el) => el.parentNode === container)
+  ) {
     for (const el of existing) {
       try {
         (el as HassAware).hass = hass;
@@ -48,7 +55,6 @@ export async function renderTrendGraphs(options: {
     }
     return existing;
   }
-  container.innerHTML = '';
   const created: HTMLElement[] = [];
   for (const cfg of tileConfigs) {
     if (!cfg) continue;
@@ -70,9 +76,14 @@ export async function renderTrendGraphs(options: {
       (el as HassAware).setConfig?.(tileConfig);
     }
     (el as HassAware).hass = hass;
-    container.appendChild(el);
     created.push(el);
   }
+  // Swap the whole set in one synchronous step. The loop above awaits
+  // loadCardHelpers(), so overlapping updated() calls interleave their
+  // appends; clearing up front and appending as we go left the container
+  // holding both runs' tiles. Replacing at the end keeps the last run's
+  // tiles and nothing else.
+  container.replaceChildren(...created);
   return created;
 }
 
