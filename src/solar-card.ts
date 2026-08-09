@@ -227,7 +227,8 @@ class HaSolarCard extends LitElement {
     const cfg = this._config;
     const tiles = buildTrendTileConfigs(cfg);
     if (tiles.length) {
-      const container = this.shadowRoot?.getElementById('graphs-section') as HTMLElement | null;
+      const container = this.shadowRoot?.getElementById('graphs-section') as HTMLElement | null
+              if (container) container.innerHTML = '';;
       renderTrendGraphs({
         hass: this._hass,
         container,
