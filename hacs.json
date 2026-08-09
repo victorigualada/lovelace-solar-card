@@ -1,5 +1,5 @@
 {
-      "name": "Solar Card",
-      "render_readme": true,
-      "filename": "dist/solar-card.js"
+    "name": "Solar Card",
+    "render_readme": true,
+    "filename": "solar-card.js"
 }
