@@ -1,0 +1,52 @@
+name: Release Asset
+
+# HACS installs a `plugin` repository from the release asset named in
+# hacs.json (`solar-card.js`). A release without that asset fails validation
+# with "Repository structure for <tag> is not compliant", so every published
+# release needs the built card attached to it.
+#
+# The Release Drafter workflow only attaches the asset to the draft it manages
+# on pushes to `main`. This workflow covers releases cut from any branch or
+# tag, and can be re-run by hand against an existing release.
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to build and attach solar-card.js to'
+        required: true
+
+permissions: {}
+
+jobs:
+  upload-asset:
+    name: Attach built card to release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Resolve the release tag
+        id: release
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.release.tag_name }}
+        run: echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout the release tag
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ steps.release.outputs.tag }}
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build project
+        run: yarn build
+
+      - name: Attach solar-card.js to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: gh release upload "$TAG" dist/solar-card.js --clobber
