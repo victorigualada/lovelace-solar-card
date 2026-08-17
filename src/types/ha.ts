@@ -46,6 +46,7 @@ export interface DeviceRegistryEntry {
 
 export interface DeviceConsumptionPref {
   stat_consumption: string;
+  stat_rate?: string;
   name?: string;
 }
 
