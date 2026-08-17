@@ -85,6 +85,10 @@ show_top_devices: true # show devices row
 top_devices_max: 4 # 1–8
 grid_feed_entity: sensor.grid_feed_now # optional, W/kW. Adds a Grid badge at the start of the devices row
 grid_feed_charging_entity: binary_sensor.ev_charging # optional. Tints the Grid badge when charging
+excluded_device_stats: # optional. Hide individual Energy entries from the row
+  - sensor.heat_pump_total_energy
+excluded_device_ids: # optional. Hide every entry belonging to these HA devices
+  - 1a2b3c4d5e6f
 
 # Trend graphs (Tile features)
 show_trend_graphs: true # enable trend graph tiles below the devices row
@@ -108,9 +112,28 @@ Notes:
 - The devices row uses Energy preferences → “Individual devices” and will show devices currently consuming power based on associated power sensors.
 - The Energy Flow section requires that your Energy dashboard is configured.
 
+### Upstream devices
+
+If you group devices in Settings → Energy using the **Upstream device** field, only the
+devices that roll up are shown. The upstream device itself is left out, since showing it
+next to its children would count the same watts twice.
+
+### Power sensors
+
+Each entry in the row needs its own power sensor, resolved in this order:
+
+1. The **Power** statistic set for that device in Settings → Energy. This is authoritative,
+   and Home Assistant guarantees no two devices share one.
+2. Otherwise, if the device contributes a single Energy entry and owns exactly one power
+   sensor, that sensor is used.
+
+If neither holds — typically when one device supplies several Energy entries — the card shows
+no badge for that entry rather than borrowing another entry's reading. Set the device's Power
+statistic in Settings → Energy to bring it back. The card editor lists any affected devices.
+
 ## FAQ
 
-- Why don’t I see devices? Ensure you have devices configured under Settings → Energy → Individual devices, and that matching power sensors exist (W/kW).
+- Why don’t I see devices? Ensure you have devices configured under Settings → Energy → Individual devices, and that matching power sensors exist (W/kW). If a single device provides several Energy entries, set the **Power** statistic on each one — see [Power sensors](#power-sensors).
 - Can the card compute “today” values? Yes; if daily sensors are missing, it computes deltas since midnight from total (cumulative) sensors.
 - Where do the icons for the devices come from? The card prefers device registry icon, then entity icons, then domain heuristics.
 

@@ -252,8 +252,9 @@ class HaSolarCard extends LitElement {
     const forecast = computeForecast(this._hass, cfg);
     const maxDevices = cfg.top_devices_max || 4;
     const excludedDeviceIds = Array.isArray(cfg.excluded_device_ids) ? cfg.excluded_device_ids : [];
+    const excludedDeviceStats = Array.isArray(cfg.excluded_device_stats) ? cfg.excluded_device_stats : [];
     const baseDevices = cfg.show_top_devices
-      ? this._deviceManager?.computeTopDevicesLive(maxDevices, excludedDeviceIds) || []
+      ? this._deviceManager?.computeTopDevicesLive(maxDevices, { excludedDeviceIds, excludedDeviceStats }) || []
       : [];
     let devicesList = baseDevices;
     const gridFeed = computeGridFeed(this._hass, cfg);

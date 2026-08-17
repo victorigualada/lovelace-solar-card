@@ -64,6 +64,9 @@
     "helper_show_today_metrics": "Deaktivieren, um 'Erzeugung heute' und 'Netz heute' auszublenden und bis zu 8 benutzerdefinierte Metriken zu verwenden.",
     "helper_show_trend_graphs": "Trenddiagramme für ausgewählte Sensoren anzeigen.",
     "helper_trend_graph_entities": "Optional. Wählen Sie eine oder mehrere Sensorentitäten für einzelne Trenddiagramme (Tile-Feature).",
-    "helper_trend_graph_hours_to_show": "Optional. Gilt für alle automatisch erzeugten Trenddiagramme."
+    "helper_trend_graph_hours_to_show": "Optional. Gilt für alle automatisch erzeugten Trenddiagramme.",
+    "label_excluded_device_stats": "Entitäten ausschließen",
+    "helper_excluded_device_stats": "Einzelne Energie-Geräte aus der Top-Geräte-Reihe ausblenden. Nützlich, wenn mehrere Einträge dasselbe Gerät verwenden.",
+    "helper_ambiguous_device_power": "Für diese Geräte konnte kein Leistungssensor zugeordnet werden. Lege die Leistungsstatistik unter Einstellungen → Energie fest:"
   }
 }

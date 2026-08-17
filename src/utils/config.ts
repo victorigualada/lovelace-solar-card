@@ -53,6 +53,7 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
     top_devices_max: 4,
     device_badge_intensity: true,
     excluded_device_ids: [],
+    excluded_device_stats: [],
     show_solar_forecast: false,
     weather_entity: '',
     solar_forecast_today_entity: '',
@@ -64,6 +65,12 @@ export function getStubConfig(hass?: Hass, entities?: string[], entitiesFallback
     total_grid_consumption_entity: '',
   } as SolarCardConfig;
 }
+
+const normalizeIdList = (value: any): string[] => {
+  if (Array.isArray(value)) return value.filter((x) => typeof x === 'string' && x);
+  if (typeof value === 'string' && value) return [value];
+  return [];
+};
 
 export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   const merged: Record<string, any> = { ...config };
@@ -78,14 +85,8 @@ export function normalizeConfig(config: SolarCardConfig): SolarCardConfig {
   merged.show_top_devices = config.show_top_devices ?? false;
   merged.top_devices_max = Math.min(Math.max(parseInt(String(config.top_devices_max ?? 4), 10) || 4, 1), 8);
   merged.device_badge_intensity = config.device_badge_intensity ?? true;
-  const excluded = (config as any).excluded_device_ids as any;
-  if (Array.isArray(excluded)) {
-    merged.excluded_device_ids = excluded.filter((x) => typeof x === 'string' && x);
-  } else if (typeof excluded === 'string' && excluded) {
-    merged.excluded_device_ids = [excluded];
-  } else {
-    merged.excluded_device_ids = [];
-  }
+  merged.excluded_device_ids = normalizeIdList((config as any).excluded_device_ids);
+  merged.excluded_device_stats = normalizeIdList((config as any).excluded_device_stats);
   merged.show_solar_forecast = config.show_solar_forecast ?? false;
   merged.weather_entity = config.weather_entity ?? '';
   merged.solar_forecast_today_entity = config.solar_forecast_today_entity ?? '';

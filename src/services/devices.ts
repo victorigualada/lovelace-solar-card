@@ -41,11 +41,13 @@ export async function buildDevicePowerMapping(
   hass: Hass,
   deviceList: EnergyPreferences['device_consumption'] | undefined,
 ): Promise<{
-  devicePowerMap: Record<string, string[]>;
+  devicePowerMap: Record<string, string>;
   statToDeviceId: Record<string, string>;
   deviceEntitiesMap: Record<string, string[]>;
   entityRegistryByEntityId: Record<string, EntityRegistryEntry>;
   deviceIconById: Record<string, string>;
+  parentStats: Set<string>;
+  ambiguousStats: string[];
 }> {
   const reg = await getEntityRegistry(hass);
   const dreg = await getDeviceRegistry(hass);
@@ -64,26 +66,64 @@ export async function buildDevicePowerMapping(
     (byDevice[ent.device_id] = byDevice[ent.device_id] || []).push(ent.entity_id);
   }
 
-  const devicePowerMap: Record<string, string[]> = {};
+  const devicePowerMap: Record<string, string> = {};
   const statToDeviceId: Record<string, string> = {};
   const deviceEntitiesMap: Record<string, string[]> = {};
+  const ambiguousStats: string[] = [];
   const states = hass.states || {};
+
+  const claimedRates = new Set<string>();
+  const entryCountByDeviceId: Record<string, number> = {};
+  const resolved: { statId: string; statRate?: string; deviceId?: string }[] = [];
   for (const dev of deviceList ?? []) {
-    const statId = dev.stat_consumption;
+    const statId = dev?.stat_consumption;
     if (!statId || !statId.includes('.')) continue;
     const statRate = dev.stat_rate?.includes('.') ? dev.stat_rate : undefined;
-    const entry = reg.find((e) => e.entity_id === statId);
-    const powerEntry = statRate ? reg.find((e) => e.entity_id === statRate) : undefined;
-    const deviceId = entry?.device_id ?? powerEntry?.device_id;
-    if (!deviceId) continue;
-    const candidates =
-      statRate && isPowerSensor(states[statRate])
-        ? [statRate]
-        : (byDevice[deviceId] ?? []).filter((eid) => isPowerSensor(states[eid]));
-    if (candidates.length) devicePowerMap[statId] = candidates;
-    statToDeviceId[statId] = deviceId;
-    deviceEntitiesMap[deviceId] = byDevice[deviceId] || [];
+    if (statRate) claimedRates.add(statRate);
+    
+    const deviceId =
+      entityRegistryByEntityId[statId]?.device_id ??
+      (statRate ? entityRegistryByEntityId[statRate]?.device_id : undefined);
+    
+      if (deviceId) entryCountByDeviceId[deviceId] = (entryCountByDeviceId[deviceId] || 0) + 1;
+    resolved.push({ statId, statRate, deviceId });
   }
 
-  return { devicePowerMap, statToDeviceId, deviceEntitiesMap, entityRegistryByEntityId, deviceIconById };
+  for (const { statId, statRate, deviceId } of resolved) {
+    if (deviceId) {
+      statToDeviceId[statId] = deviceId;
+      deviceEntitiesMap[deviceId] = byDevice[deviceId] || [];
+    }
+    if (statRate && isPowerSensor(states[statRate])) {
+      devicePowerMap[statId] = statRate;
+      continue;
+    }
+
+    if (deviceId && entryCountByDeviceId[deviceId] === 1) {
+      const candidates = (byDevice[deviceId] ?? []).filter(
+        (eid) => isPowerSensor(states[eid]) && !claimedRates.has(eid),
+      );
+      if (candidates.length === 1) {
+        devicePowerMap[statId] = candidates[0];
+        continue;
+      }
+    }
+
+    ambiguousStats.push(statId);
+  }
+
+  const parentStats = new Set<string>();
+  for (const dev of deviceList ?? []) {
+    if (dev?.included_in_stat) parentStats.add(dev.included_in_stat);
+  }
+
+  return {
+    devicePowerMap,
+    statToDeviceId,
+    deviceEntitiesMap,
+    entityRegistryByEntityId,
+    deviceIconById,
+    parentStats,
+    ambiguousStats,
+  };
 }

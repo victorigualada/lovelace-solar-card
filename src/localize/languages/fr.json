@@ -64,6 +64,9 @@
     "helper_show_today_metrics": "Désactiver pour masquer « Production aujourd'hui » et « Réseau aujourd'hui » et utiliser jusqu'à 8 métriques personnalisées.",
     "helper_show_trend_graphs": "Affiche des tuiles de tendances pour les capteurs sélectionnés.",
     "helper_trend_graph_entities": "Optionnel. Sélectionnez une ou plusieurs entités de capteurs à afficher sous forme de graphiques de tendance individuels (fonctionnalité Tile).",
-    "helper_trend_graph_hours_to_show": "Optionnel. S'applique à tous les graphiques de tendance générés automatiquement."
+    "helper_trend_graph_hours_to_show": "Optionnel. S'applique à tous les graphiques de tendance générés automatiquement.",
+    "label_excluded_device_stats": "Exclure des entités",
+    "helper_excluded_device_stats": "Masquer certains appareils Énergie de la ligne des principaux appareils. Utile lorsque plusieurs entrées partagent un même appareil.",
+    "helper_ambiguous_device_power": "Aucun capteur de puissance n’a pu être associé à ces appareils. Définissez leur statistique de puissance dans Paramètres → Énergie :"
   }
 }

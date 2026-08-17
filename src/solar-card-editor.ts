@@ -10,6 +10,8 @@ export class HaSolarCardEditor extends LitElement {
   private _hass: Hass | null;
   public config: SolarCardConfig;
   private _energyDeviceIds: string[] = [];
+  private _energyDeviceEntries: { stat: string; name: string }[] = [];
+  private _ambiguousStats: string[] = [];
   private _loadingEnergyDevices = false;
   private readonly _metricFormSchema = [
     { name: 'entity', selector: { entity: {} } },
@@ -339,7 +341,7 @@ export class HaSolarCardEditor extends LitElement {
                   .computeHelper=${this._computeHelper}
                   @value-changed=${this._valueChanged}
                 ></ha-form>
-                ${this._renderExcludeDevicesPicker()}
+                ${this._renderExcludeStatsPicker()} ${this._renderExcludeDevicesPicker()}
                 <div style="display: none">
                   <ha-form
                     .hass=${this._hass}
@@ -662,17 +664,63 @@ export class HaSolarCardEditor extends LitElement {
     this._loadingEnergyDevices = true;
     try {
       const prefs = await getEnergyPrefs(this._hass);
-      const res = await buildDevicePowerMapping(this._hass, prefs?.device_consumption || []);
+      const entries = prefs?.device_consumption || [];
+      const res = await buildDevicePowerMapping(this._hass, entries);
       const statToDeviceId = res?.statToDeviceId || {};
       const ids = Array.from(new Set(Object.values(statToDeviceId))).filter(Boolean) as string[];
       this._energyDeviceIds = ids;
+      this._energyDeviceEntries = entries
+        .filter((d) => d?.stat_consumption)
+        .map((d) => ({ stat: d.stat_consumption, name: d.name || d.stat_consumption }));
+      this._ambiguousStats = res?.ambiguousStats || [];
     } catch (_e) {
       this._energyDeviceIds = [];
+      this._energyDeviceEntries = [];
+      this._ambiguousStats = [];
     } finally {
       this._loadingEnergyDevices = false;
       this.requestUpdate();
     }
   }
+
+  private _renderExcludeStatsPicker() {
+    if (!this._energyDeviceEntries.length) return nothing;
+    const selected: string[] = Array.isArray(this.config?.excluded_device_stats)
+      ? (this.config!.excluded_device_stats as string[])
+      : [];
+    const label = localize('editor.label_excluded_device_stats') || 'Exclude entities';
+    const help = localize('editor.helper_excluded_device_stats') || '';
+    const options = this._energyDeviceEntries.map((e) => ({ value: e.stat, label: e.name }));
+
+    return html`
+      <div class="section" style="margin-top: 8px; display: grid; gap: 8px;">
+        <div class="subsection-label">${label}</div>
+        <div class="metrics-empty" style="margin-top: -4px;">${help}</div>
+        <ha-selector
+          .hass=${this._hass}
+          .selector=${{ select: { multiple: true, mode: 'list', options } }}
+          .value=${selected}
+          @value-changed=${this._onExcludedStatsChanged}
+        ></ha-selector>
+        ${this._renderAmbiguousHint()}
+      </div>
+    `;
+  }
+
+  private _renderAmbiguousHint() {
+    if (!this._ambiguousStats.length) return nothing;
+    const names = this._ambiguousStats
+      .map((stat) => this._energyDeviceEntries.find((e) => e.stat === stat)?.name || stat)
+      .join(', ');
+    const hint = localize('editor.helper_ambiguous_device_power') || '';
+    return html`<div class="metrics-empty">${hint} ${names}</div>`;
+  }
+
+  private _onExcludedStatsChanged = (ev: CustomEvent) => {
+    ev.stopPropagation();
+    const val = (ev.detail && (ev.detail as any).value) as string[] | undefined;
+    this._applyConfigUpdate({ excluded_device_stats: Array.isArray(val) ? val : [] });
+  };
 
   private _renderExcludeDevicesPicker() {
     const selected: string[] = Array.isArray(this.config?.excluded_device_ids)

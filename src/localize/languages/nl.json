@@ -64,6 +64,9 @@
     "helper_show_today_metrics": "Uitschakelen om 'Opbrengst vandaag' en 'Net vandaag' te verbergen en tot 8 aangepaste metrieken te gebruiken.",
     "helper_show_trend_graphs": "Trendgrafiektegels voor geselecteerde sensoren tonen.",
     "helper_trend_graph_entities": "Optioneel. Kies een of meer sensorentiteiten om als individuele trendgrafieken (Tile-functie) weer te geven.",
-    "helper_trend_graph_hours_to_show": "Optioneel. Geldt voor alle automatisch gegenereerde trendgrafieken."
+    "helper_trend_graph_hours_to_show": "Optioneel. Geldt voor alle automatisch gegenereerde trendgrafieken.",
+    "label_excluded_device_stats": "Entiteiten uitsluiten",
+    "helper_excluded_device_stats": "Verberg afzonderlijke Energie-apparaten uit de rij met belangrijkste apparaten. Handig wanneer meerdere items hetzelfde apparaat delen.",
+    "helper_ambiguous_device_power": "Voor deze apparaten kon geen vermogenssensor worden gekoppeld. Stel hun vermogensstatistiek in via Instellingen → Energie:"
   }
 }
