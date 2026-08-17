@@ -7,6 +7,11 @@ import { iconForDeviceByStat } from '../utils/icons';
 
 export type DeviceLiveManager = ReturnType<typeof createDeviceLiveManager>;
 
+export interface TopDevicesOptions {
+  excludedDeviceIds?: string[];
+  excludedDeviceStats?: string[];
+}
+
 export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
   // Keep a mutable reference so we can update hass on every setter call
   let haRef: Hass = hass;
@@ -14,11 +19,12 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
   let lastFetch = 0;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let deviceList: EnergyPreferences['device_consumption'] = [];
-  let devicePowerMap: Record<string, string[]> = {};
+  let devicePowerMap: Record<string, string> = {};
   let statToDeviceId: Record<string, string> = {};
   let deviceEntitiesMap: Record<string, string[]> = {};
   let entityRegistryByEntityId: Record<string, EntityRegistryEntry> = {} as any;
   let deviceIconById: Record<string, string> = {};
+  let parentStats: Set<string> = new Set();
 
   async function refresh() {
     const now = Date.now();
@@ -34,6 +40,7 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
       deviceEntitiesMap = res.deviceEntitiesMap as any;
       entityRegistryByEntityId = res.entityRegistryByEntityId as any;
       deviceIconById = res.deviceIconById;
+      parentStats = res.parentStats;
       lastFetch = Date.now();
       onUpdate();
     } finally {
@@ -46,25 +53,29 @@ export function createDeviceLiveManager(hass: Hass, onUpdate: () => void) {
     }
   }
 
-  function computeTopDevicesLive(maxCount: number, excludedDeviceIds?: string[]): DeviceBadgeItem[] {
+  function wattsForStat(statId: string): number | null {
+    const powerEntity = devicePowerMap[statId];
+    if (!powerEntity) return null;
+    
+    const val = powerWattsFromState(haRef, powerEntity);
+    return val == null ? null : Math.max(0, val);
+  }
+
+  function computeTopDevicesLive(maxCount: number, options: TopDevicesOptions = {}): DeviceBadgeItem[] {
     if (!devicePowerMap || !deviceList?.length) return [];
+    const excludedDeviceIds = options.excludedDeviceIds ?? [];
+    const excludedDeviceStats = options.excludedDeviceStats ?? [];
     const items: DeviceBadgeItem[] = [];
     for (const dev of deviceList) {
       const statId = dev.stat_consumption;
+      if (parentStats.has(statId)) continue;
       const namestr = dev.name || statId;
       const devId = statToDeviceId[statId];
-      if (Array.isArray(excludedDeviceIds) && excludedDeviceIds.length && devId && excludedDeviceIds.includes(devId)) {
+      if (excludedDeviceStats.length && excludedDeviceStats.includes(statId)) continue;
+      if (excludedDeviceIds.length && devId && excludedDeviceIds.includes(devId)) {
         continue;
       }
-      const pEntities = devicePowerMap[statId] || [];
-      let watts: number | null = null;
-      for (const pe of pEntities) {
-        const val = powerWattsFromState(haRef, pe);
-        if (val == null) continue;
-        if (watts == null || val > watts) {
-          watts = Math.max(0, val);
-        }
-      }
+      const watts = wattsForStat(statId);
       if (watts != null && watts > 0) {
         const icon = iconForDeviceByStat(statId, haRef, {
           statToDeviceId,

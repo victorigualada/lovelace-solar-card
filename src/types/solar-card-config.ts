@@ -12,6 +12,7 @@ export interface SolarCardConfig extends LovelaceCardConfig {
   top_devices_max?: number;
   device_badge_intensity?: boolean;
   excluded_device_ids?: string[];
+  excluded_device_stats?: string[];
   show_solar_forecast?: boolean;
   weather_entity?: string;
   solar_forecast_today_entity?: string;

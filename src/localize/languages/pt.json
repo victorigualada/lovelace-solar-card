@@ -62,6 +62,9 @@
     "helper_show_today_metrics": "Desative para ocultar 'Produção hoje' e 'Rede hoje' e usar até 8 métricas personalizadas.",
     "helper_show_trend_graphs": "Exibe gráficos de tendência para os sensores selecionados.",
     "helper_trend_graph_entities": "Opcional. Selecione uma ou mais entidades de sensor para exibir como gráficos de tendência individuais (recurso Tile).",
-    "helper_trend_graph_hours_to_show": "Opcional. Aplica-se a todos os gráficos de tendência gerados automaticamente."
+    "helper_trend_graph_hours_to_show": "Opcional. Aplica-se a todos os gráficos de tendência gerados automaticamente.",
+    "label_excluded_device_stats": "Excluir entidades",
+    "helper_excluded_device_stats": "Ocultar dispositivos de Energia específicos da linha dos principais dispositivos. Útil quando várias entradas partilham o mesmo dispositivo.",
+    "helper_ambiguous_device_power": "Não foi possível associar um sensor de potência a estes dispositivos. Defina a respetiva estatística de potência em Definições → Energia:"
   }
 }

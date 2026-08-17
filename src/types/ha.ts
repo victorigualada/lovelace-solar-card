@@ -48,6 +48,7 @@ export interface DeviceConsumptionPref {
   stat_consumption: string;
   stat_rate?: string;
   name?: string;
+  included_in_stat?: string;
 }
 
 export interface EnergyPreferences {

@@ -70,6 +70,9 @@
     "helper_show_today_metrics": "Turn off to hide 'Yield today' and 'Grid today' and use up to 8 custom metrics.",
     "helper_show_trend_graphs": "Displays trend graph tiles for selected sensors.",
     "helper_trend_graph_entities": "Optional. Select one or more sensor entities to render as individual trend graphs (Tile features).",
-    "helper_trend_graph_hours_to_show": "Optional. Applies to all auto-generated trend graphs."
+    "helper_trend_graph_hours_to_show": "Optional. Applies to all auto-generated trend graphs.",
+    "label_excluded_device_stats": "Exclude entities",
+    "helper_excluded_device_stats": "Hide individual Energy devices from the Top Devices row. Use this when several entries share one device.",
+    "helper_ambiguous_device_power": "No power sensor could be matched for these devices. Set their Power statistic in Settings → Energy:"
   }
 }
