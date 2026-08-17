@@ -48,6 +48,8 @@ export async function renderTrendGraphs(options: {
     }
     return existing;
   }
+  const token = Symbol('trend-graphs-render');
+  (container as any).__trendGraphsRenderToken = token;
   container.innerHTML = '';
   const created: HTMLElement[] = [];
   for (const cfg of tileConfigs) {
@@ -59,12 +61,14 @@ export async function renderTrendGraphs(options: {
     if (!('name' in tileConfig) && friendly) tileConfig.name = stripDeviceFromName(String(friendly), ent);
     try {
       const helpers = await window.loadCardHelpers?.();
+      if ((container as any).__trendGraphsRenderToken !== token) return null;
       if (helpers?.createCardElement) {
         el = helpers.createCardElement(tileConfig);
       }
     } catch (_e) {
       /* ignore */
     }
+    if ((container as any).__trendGraphsRenderToken !== token) return null;
     if (!el) {
       el = document.createElement('hui-tile-card');
       (el as HassAware).setConfig?.(tileConfig);
