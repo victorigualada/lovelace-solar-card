@@ -1,6 +1,12 @@
-import type { Hass, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from '../types/ha';
+import type { Hass, HassEntity, EntityRegistryEntry, DeviceRegistryEntry, EnergyPreferences } from '../types/ha';
 
 import { getEntityRegistry, getDeviceRegistry } from './registries';
+
+function isPowerSensor(st: HassEntity | undefined): boolean {
+  const dc = st?.attributes?.device_class;
+  const unit = st?.attributes?.unit_of_measurement || '';
+  return dc === 'power' && /k?W/i.test(unit);
+}
 
 export async function getEnergyPrefs(hass: Hass): Promise<EnergyPreferences> {
   return hass.callWS<EnergyPreferences>({ type: 'energy/get_prefs' });
@@ -65,28 +71,16 @@ export async function buildDevicePowerMapping(
   for (const dev of deviceList ?? []) {
     const statId = dev.stat_consumption;
     if (!statId || !statId.includes('.')) continue;
+    const statRate = dev.stat_rate?.includes('.') ? dev.stat_rate : undefined;
     const entry = reg.find((e) => e.entity_id === statId);
-    const powerEntry = dev.stat_rate
-      ? reg.find((e) => e.entity_id === dev.stat_rate)
-      : undefined;
+    const powerEntry = statRate ? reg.find((e) => e.entity_id === statRate) : undefined;
     const deviceId = entry?.device_id ?? powerEntry?.device_id;
     if (!deviceId) continue;
-    if (dev.stat_rate) {
-      const st = states[dev.stat_rate];
-      const dc = st?.attributes?.device_class;
-      const unit = st?.attributes?.unit_of_measurement || '';
-      if (dc === 'power' && /k?W/i.test(unit)) {
-        devicePowerMap[statId] = [dev.stat_rate];
-      }
-    } else {
-      const candidates = (byDevice[deviceId] || []).filter((eid) => {
-        const st = states[eid];
-        const dc = st?.attributes?.device_class;
-        const unit = st?.attributes?.unit_of_measurement || '';
-        return dc === 'power' && /k?W/i.test(unit);
-      });
-      if (candidates.length) devicePowerMap[statId] = candidates;
-    }
+    const candidates =
+      statRate && isPowerSensor(states[statRate])
+        ? [statRate]
+        : (byDevice[deviceId] ?? []).filter((eid) => isPowerSensor(states[eid]));
+    if (candidates.length) devicePowerMap[statId] = candidates;
     statToDeviceId[statId] = deviceId;
     deviceEntitiesMap[deviceId] = byDevice[deviceId] || [];
   }
